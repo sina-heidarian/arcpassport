@@ -43,11 +43,20 @@ def get_or_create_passport(db: Session, wallet: str):
     return passport
 
 
-def calculate_scores(stats: dict, passport: Passport):
+def get_deployment_count(db: Session, wallet: str):
+    return (
+        db.query(Deployment)
+        .filter(Deployment.wallet == wallet.lower())
+        .count()
+    )
+
+
+def calculate_scores(stats: dict, passport: Passport, deployment_count: int):
     tx_count = stats["tx_count"]
     contract_calls = stats["contract_calls"]
     token_transfers = stats["token_transfers"]
     tokens_count = stats["tokens_count"]
+    deployment_xp = deployment_count * 100
 
     onchain_xp = (
         tx_count * 2
@@ -56,7 +65,7 @@ def calculate_scores(stats: dict, passport: Passport):
         + tokens_count * 5
     )
 
-    total_xp = onchain_xp + passport.checkin_xp
+    total_xp = onchain_xp + passport.checkin_xp + deployment_xp
 
     level = max(1, total_xp // 100 + 1)
 
@@ -66,19 +75,24 @@ def calculate_scores(stats: dict, passport: Passport):
         + token_transfers
         + tokens_count * 2
         + passport.streak * 2
+        + deployment_count * 10
     )
 
     return {
         "xp": total_xp,
         "level": level,
         "reputation": reputation,
+        "deployment_xp": deployment_xp,
     }
 def calculate_user_rank(db: Session, wallet: str):
     passports = db.query(Passport).all()
 
     ranked_users = sorted(
         passports,
-        key=lambda p: (p.checkin_xp, p.streak),
+        key=lambda p: (
+            p.checkin_xp + get_deployment_count(db, p.wallet) * 100,
+            p.streak,
+        ),
         reverse=True
     )
 
@@ -100,8 +114,9 @@ def get_passport(wallet: str, db: Session = Depends(get_db)):
     try:
         passport = get_or_create_passport(db, wallet)
         stats = build_wallet_stats(wallet)
+        deployment_count = get_deployment_count(db, wallet)
 
-        scores = calculate_scores(stats, passport)
+        scores = calculate_scores(stats, passport, deployment_count)
 
         today = date.today()
         checkin_available = passport.last_checkin_date != today
@@ -122,6 +137,8 @@ def get_passport(wallet: str, db: Session = Depends(get_db)):
             "recent_transactions": stats["recent_transactions"],
             "checkin_available": checkin_available,
             "checkin_xp": passport.checkin_xp,
+            "deployment_count": deployment_count,
+            "deployment_xp": scores["deployment_xp"],
         }
 
     except Exception as e:
@@ -176,11 +193,16 @@ def get_leaderboard(db: Session = Depends(get_db)):
     leaderboard = []
 
     for passport in passports:
+        deployment_count = get_deployment_count(db, passport.wallet)
+        deployment_xp = deployment_count * 100
+        xp = passport.checkin_xp + deployment_xp
+
         leaderboard.append({
             "wallet": passport.wallet,
-            "xp": passport.checkin_xp,
+            "xp": xp,
             "streak": passport.streak,
             "checkin_xp": passport.checkin_xp,
+            "deployment_xp": deployment_xp,
         })
 
     leaderboard.sort(key=lambda x: (x["xp"], x["streak"]), reverse=True)
@@ -198,6 +220,19 @@ def save_deployment(payload: dict, db: Session = Depends(get_db)):
     contract_address = payload["contract_address"]
     tx_hash = payload["tx_hash"]
 
+    existing_deployment = (
+        db.query(Deployment)
+        .filter(Deployment.tx_hash == tx_hash)
+        .first()
+    )
+
+    if existing_deployment:
+        return {
+            "success": True,
+            "reward_xp": 0,
+            "message": "Deployment already saved",
+        }
+
     deployment = Deployment(
         wallet=wallet,
         contract_address=contract_address,
@@ -206,9 +241,7 @@ def save_deployment(payload: dict, db: Session = Depends(get_db)):
 
     db.add(deployment)
 
-    passport = get_or_create_passport(db, wallet)
-
-    passport.checkin_xp += 100
+    get_or_create_passport(db, wallet)
 
     db.commit()
 

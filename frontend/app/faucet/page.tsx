@@ -1,22 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
+import Navbar from "@/components/Navbar";
 
 type FaucetAsset = "USDC" | "EURC" | "cirBTC";
 
 export default function FaucetPage() {
   const { address, isConnected } = useAccount();
 
-  const [walletAddress, setWalletAddress] = useState("");
   const [asset, setAsset] = useState<FaucetAsset>("USDC");
-
-  useEffect(() => {
-    if (address) {
-      setWalletAddress(address);
-    }
-  }, [address]);
+  const walletAddress = address ?? "";
 
   const amount = asset === "cirBTC" ? "0.0001" : "20";
 
@@ -34,31 +29,7 @@ export default function FaucetPage() {
   return (
     <main className="min-h-screen bg-black text-white p-4">
       <div className="max-w-3xl mx-auto space-y-4">
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-          <div>
-            <h1 className="text-2xl font-bold">ArcPassport</h1>
-            <p className="text-sm text-gray-400 mt-1">Arc Testnet Faucet</p>
-          </div>
-
-          <div className="flex items-center gap-6 text-sm font-medium">
-            <a href="/" className="text-white hover:text-gray-300">
-              Passport
-            </a>
-
-            <a href="/faucet" className="text-blue-400">
-              Faucet
-            </a>
-
-            <a
-              href="https://testnet.arcscan.app"
-              target="_blank"
-              rel="noreferrer"
-              className="text-white hover:text-gray-300"
-            >
-              ArcScan
-            </a>
-          </div>
-        </div>
+        <Navbar active="faucet" compact />
 
         <div className="bg-zinc-900 rounded-2xl p-4 space-y-5">
           <div>
@@ -127,7 +98,6 @@ export default function FaucetPage() {
               className="w-full mt-2 bg-black border border-zinc-700 rounded-xl p-3 text-gray-300"
               placeholder="Connect wallet first"
               value={walletAddress}
-              onChange={(e) => setWalletAddress(e.target.value)}
             />
           </div>
 
