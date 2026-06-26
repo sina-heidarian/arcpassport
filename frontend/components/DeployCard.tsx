@@ -20,7 +20,7 @@ export default function DeployCard({
   onDeploy,
 }: DeployCardProps) {
   return (
-    <div className="bg-zinc-900 rounded-2xl p-6 space-y-4">
+    <div id="builder-zone" className="bg-zinc-900 rounded-2xl p-6 space-y-4">
       <h2 className="text-2xl font-bold">Builder Zone</h2>
       <p className="text-gray-400">
         Deploy your first smart contract on Arc Testnet and earn Builder XP.

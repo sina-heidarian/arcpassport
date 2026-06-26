@@ -1,11 +1,17 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { apiGet } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
 import type { Deployment } from "@/lib/types";
 
 type DeploymentsResponse = {
   deployments: Deployment[];
+};
+
+type SaveDeploymentPayload = {
+  wallet: string;
+  contract_address: string;
+  tx_hash: string;
 };
 
 export function useDeployments() {
@@ -22,5 +28,9 @@ export function useDeployments() {
     }
   }, []);
 
-  return { deployments, loadDeployments };
+  const saveDeployment = useCallback(async (payload: SaveDeploymentPayload) => {
+    return apiPost("/deployment", payload);
+  }, []);
+
+  return { deployments, loadDeployments, saveDeployment };
 }

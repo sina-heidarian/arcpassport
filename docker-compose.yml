@@ -16,6 +16,7 @@ services:
       - db
     environment:
       DATABASE_URL: postgresql://arc:arcpass@db:5432/arcpassport
+      CIRCLE_BASE_URL: https://api-sandbox.circle.com
 
   frontend:
     build: ./frontend
@@ -23,3 +24,6 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    environment:
+      INTERNAL_API_URL: http://backend:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000

@@ -9,6 +9,10 @@ export function usePassport() {
   const [loading, setLoading] = useState(false);
   const [checkinLoading, setCheckinLoading] = useState(false);
 
+  const clearPassport = useCallback(() => {
+    setPassport(null);
+  }, []);
+
   const loadPassport = useCallback(async (walletAddress: string) => {
     if (!walletAddress) return null;
 
@@ -49,5 +53,12 @@ export function usePassport() {
     [loadPassport]
   );
 
-  return { passport, loading, checkinLoading, loadPassport, dailyCheckin };
+  return {
+    passport,
+    loading,
+    checkinLoading,
+    loadPassport,
+    dailyCheckin,
+    clearPassport,
+  };
 }

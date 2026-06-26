@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import Navbar from "@/components/Navbar";
 
@@ -38,8 +37,6 @@ export default function FaucetPage() {
               Request Arc Testnet assets from Circle.
             </p>
           </div>
-
-          <ConnectButton />
 
           {isConnected && walletAddress && (
             <div className="bg-black border border-zinc-800 rounded-xl p-3">

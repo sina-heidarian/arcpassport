@@ -5,6 +5,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 type WalletCardProps = {
   wallet: string;
   loading: boolean;
+  inputId?: string;
   onWalletChange: (wallet: string) => void;
   onLoadPassport: () => void;
 };
@@ -12,6 +13,7 @@ type WalletCardProps = {
 export default function WalletCard({
   wallet,
   loading,
+  inputId,
   onWalletChange,
   onLoadPassport,
 }: WalletCardProps) {
@@ -26,6 +28,7 @@ export default function WalletCard({
         <h2 className="text-xl font-semibold">Load Passport</h2>
 
         <input
+          id={inputId}
           className="w-full bg-black border border-zinc-700 rounded-xl p-3"
           placeholder="Enter wallet address"
           value={wallet}

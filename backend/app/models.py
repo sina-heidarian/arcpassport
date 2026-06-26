@@ -13,6 +13,11 @@ class Passport(Base):
     streak = Column(Integer, default=0)
     last_checkin_date = Column(Date, nullable=True)
 
+    display_name = Column(String(40), nullable=True)
+    bio = Column(String(160), nullable=True)
+    x_handle = Column(String(30), nullable=True)
+    website = Column(String(120), nullable=True)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
 

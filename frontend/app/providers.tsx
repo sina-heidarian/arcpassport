@@ -6,6 +6,7 @@ import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import { PassportProvider } from "@/components/PassportProvider";
 import { config } from "@/lib/wagmi";
 
 const queryClient = new QueryClient();
@@ -21,7 +22,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             borderRadius: "large",
           })}
         >
-          {children}
+          <PassportProvider>{children}</PassportProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
