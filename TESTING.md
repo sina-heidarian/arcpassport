@@ -9,12 +9,20 @@ docker compose up --build
 
 ## Backend Checks
 
+With Docker running:
+
 ```bash
 curl http://localhost:8000/
 curl http://localhost:8000/passport/<wallet>
 curl http://localhost:8000/leaderboard
 curl http://localhost:8000/stats
 curl http://localhost:8000/circle/status
+```
+
+Or run the backend smoke test script from another PowerShell terminal:
+
+```powershell
+.\scripts\smoke_test_backend.ps1
 ```
 
 `/circle/status` should return `configured: false` unless a backend-only
