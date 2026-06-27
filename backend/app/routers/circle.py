@@ -1,10 +1,13 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
+from app.http_errors import raise_bad_request
 from app.schemas import (
     CircleDeployRequest,
     CircleDeployResponse,
+    CircleStatusResponse,
     CircleWalletCreateRequest,
     CircleWalletCreateResponse,
+    CircleWalletsStatusResponse,
     GasSponsorshipEstimateRequest,
     GasSponsorshipEstimateResponse,
     GasSponsorshipStatusResponse,
@@ -18,19 +21,25 @@ from app.services.circle import (
     prepare_wallet_create,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["Circle Blueprints"])
 
 
-def bad_request_from_value_error(error: ValueError):
-    raise HTTPException(status_code=400, detail=str(error))
-
-
-@router.get("/circle/status")
+@router.get(
+    "/circle/status",
+    response_model=CircleStatusResponse,
+    summary="Circle configuration status",
+    description="Report whether backend-only Circle API configuration is present without exposing secrets.",
+)
 def circle_status():
     return get_circle_status()
 
 
-@router.post("/circle/contracts/deploy", response_model=CircleDeployResponse)
+@router.post(
+    "/circle/contracts/deploy",
+    response_model=CircleDeployResponse,
+    summary="Prepare mock Circle contract deploy",
+    description="Validate and return a mock Circle Contracts deployment preparation response.",
+)
 def prepare_circle_contract_deploy(payload: CircleDeployRequest):
     try:
         return prepare_contract_deploy(
@@ -38,15 +47,25 @@ def prepare_circle_contract_deploy(payload: CircleDeployRequest):
             contract_type=payload.contract_type,
         )
     except ValueError as error:
-        bad_request_from_value_error(error)
+        raise_bad_request(error)
 
 
-@router.get("/circle/wallets/status")
+@router.get(
+    "/circle/wallets/status",
+    response_model=CircleWalletsStatusResponse,
+    summary="Circle Wallets blueprint status",
+    description="Return mock readiness status for future Circle Wallets integration.",
+)
 def circle_wallets_status():
     return get_wallets_status()
 
 
-@router.post("/circle/wallets/create", response_model=CircleWalletCreateResponse)
+@router.post(
+    "/circle/wallets/create",
+    response_model=CircleWalletCreateResponse,
+    summary="Prepare mock Circle wallet create",
+    description="Validate and return a mock Circle Wallets creation preparation response.",
+)
 def prepare_circle_wallet_create(payload: CircleWalletCreateRequest):
     try:
         return prepare_wallet_create(
@@ -54,10 +73,15 @@ def prepare_circle_wallet_create(payload: CircleWalletCreateRequest):
             wallet_type=payload.wallet_type,
         )
     except ValueError as error:
-        bad_request_from_value_error(error)
+        raise_bad_request(error)
 
 
-@router.get("/circle/paymaster/status", response_model=GasSponsorshipStatusResponse)
+@router.get(
+    "/circle/paymaster/status",
+    response_model=GasSponsorshipStatusResponse,
+    summary="Paymaster blueprint status",
+    description="Return mock readiness status for future gas sponsorship support.",
+)
 def circle_paymaster_status():
     return get_paymaster_status()
 
@@ -65,6 +89,8 @@ def circle_paymaster_status():
 @router.post(
     "/circle/paymaster/estimate",
     response_model=GasSponsorshipEstimateResponse,
+    summary="Prepare mock gas sponsorship estimate",
+    description="Validate and return a mock paymaster estimate response.",
 )
 def estimate_circle_paymaster(payload: GasSponsorshipEstimateRequest):
     try:
@@ -73,4 +99,4 @@ def estimate_circle_paymaster(payload: GasSponsorshipEstimateRequest):
             action=payload.action,
         )
     except ValueError as error:
-        bad_request_from_value_error(error)
+        raise_bad_request(error)

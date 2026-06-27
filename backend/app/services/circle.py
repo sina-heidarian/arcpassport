@@ -1,23 +1,26 @@
-import os
+import logging
 import uuid
 
+from app.config import settings
 
-DEFAULT_CIRCLE_BASE_URL = "https://api-sandbox.circle.com"
+logger = logging.getLogger(__name__)
+
 SUPPORTED_CIRCLE_CONTRACT_TYPES = {"counter", "erc20", "erc721"}
 SUPPORTED_CIRCLE_WALLET_TYPES = {"developer", "user"}
 SUPPORTED_GAS_SPONSORSHIP_ACTIONS = ["deploy_contract", "mint_passport", "checkin"]
 
 
 def get_circle_base_url():
-    return os.getenv("CIRCLE_BASE_URL", DEFAULT_CIRCLE_BASE_URL)
+    return settings.circle_base_url
 
 
 def is_circle_configured():
-    return bool(os.getenv("CIRCLE_API_KEY"))
+    return bool(settings.circle_api_key)
 
 
 def get_circle_status():
     configured = is_circle_configured()
+    logger.info("Circle status checked: configured=%s", configured)
 
     return {
         "configured": configured,
@@ -31,9 +34,10 @@ def get_circle_status():
 
 
 def get_circle_headers():
-    api_key = os.getenv("CIRCLE_API_KEY")
+    api_key = settings.circle_api_key
 
     if not api_key:
+        logger.warning("Circle headers requested without CIRCLE_API_KEY")
         raise RuntimeError("CIRCLE_API_KEY is not configured")
 
     return {

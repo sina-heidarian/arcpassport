@@ -40,7 +40,12 @@ def validate_profile_field(value, field_name: str, max_length: int):
     return value or None
 
 
-def calculate_scores(stats: dict, passport: Passport, deployment_count: int):
+def calculate_scores(
+    stats: dict,
+    passport: Passport,
+    deployment_count: int,
+    quest_xp: int = 0,
+):
     tx_count = stats["tx_count"]
     contract_calls = stats["contract_calls"]
     token_transfers = stats["token_transfers"]
@@ -54,7 +59,7 @@ def calculate_scores(stats: dict, passport: Passport, deployment_count: int):
         + tokens_count * 5
     )
 
-    total_xp = onchain_xp + passport.checkin_xp + deployment_xp
+    total_xp = onchain_xp + passport.checkin_xp + deployment_xp + quest_xp
     level = max(1, total_xp // 100 + 1)
 
     reputation = (
@@ -72,6 +77,7 @@ def calculate_scores(stats: dict, passport: Passport, deployment_count: int):
         "reputation": reputation,
         "onchain_xp": onchain_xp,
         "deployment_xp": deployment_xp,
+        "quest_xp": quest_xp,
     }
 
 
@@ -91,7 +97,10 @@ def build_passport_response(db: Session, wallet: str):
     passport = get_or_create_passport(db, wallet)
     stats = build_wallet_stats(wallet)
     deployment_count = get_deployment_count(db, wallet)
-    scores = calculate_scores(stats, passport, deployment_count)
+    from app.services.quests import get_quest_xp
+
+    quest_xp = get_quest_xp(db, wallet)
+    scores = calculate_scores(stats, passport, deployment_count, quest_xp)
     achievements = build_achievements(
         passport,
         stats,
@@ -121,10 +130,12 @@ def build_passport_response(db: Session, wallet: str):
         "checkin_xp": passport.checkin_xp,
         "deployment_count": deployment_count,
         "deployment_xp": scores["deployment_xp"],
+        "quest_xp": scores["quest_xp"],
         "xp_breakdown": {
             "onchain_xp": scores["onchain_xp"],
             "deployment_xp": scores["deployment_xp"],
             "checkin_xp": passport.checkin_xp,
+            "quest_xp": scores["quest_xp"],
             "total_xp": scores["xp"],
         },
         "achievements": achievements,
@@ -166,7 +177,10 @@ def prepare_passport_mint(db: Session, wallet: str):
     passport = get_or_create_passport(db, wallet)
     stats = build_wallet_stats(wallet)
     deployment_count = get_deployment_count(db, wallet)
-    scores = calculate_scores(stats, passport, deployment_count)
+    from app.services.quests import get_quest_xp
+
+    quest_xp = get_quest_xp(db, wallet)
+    scores = calculate_scores(stats, passport, deployment_count, quest_xp)
     rank = calculate_user_rank(db, wallet)
 
     return {

@@ -202,6 +202,13 @@ export default function ToolsPage() {
           </p>
         </section>
 
+        <ActionLinkCard
+          title="Quest Progress"
+          description="Track builder goals and XP rewards from one focused page."
+          href="/quests"
+          cta="Open Quests"
+        />
+
         {!isConnected && (
           <div className="bg-zinc-900 rounded-2xl p-6">
             <h2 className="text-2xl font-bold">Connect your wallet</h2>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import GlobalStats from "@/components/GlobalStats";
 import Navbar from "@/components/Navbar";
 import { usePassportContext } from "@/components/PassportProvider";
+import TodaysQuest from "@/components/TodaysQuest";
 import { useStats } from "@/hooks/useStats";
 
 const features = [
@@ -63,6 +64,8 @@ export default function Home() {
           </div>
         </section>
 
+        {isConnected ? <TodaysQuest /> : <StartQuestCTA />}
+
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {features.map((feature) => (
             <div
@@ -80,5 +83,26 @@ export default function Home() {
         <GlobalStats stats={stats} />
       </div>
     </main>
+  );
+}
+
+function StartQuestCTA() {
+  return (
+    <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Start your first Builder Quest</h2>
+          <p className="mt-1 text-sm text-gray-400">
+            Preview ArcPassport goals, then connect wallet to track progress.
+          </p>
+        </div>
+        <Link
+          href="/quests"
+          className="rounded-xl bg-white px-5 py-3 text-center font-medium text-black"
+        >
+          Open Quests
+        </Link>
+      </div>
+    </section>
   );
 }

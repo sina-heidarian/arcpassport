@@ -5,6 +5,7 @@ from app.services.achievements import build_achievements
 from app.services.arcscan import build_wallet_stats
 from app.services.deployments import get_deployment_count
 from app.services.passport import calculate_scores, get_builder_rank
+from app.services.quests import get_quest_xp
 
 
 def build_leaderboard_entries(db: Session):
@@ -14,7 +15,8 @@ def build_leaderboard_entries(db: Session):
     for passport in passports:
         stats = build_wallet_stats(passport.wallet)
         deployment_count = get_deployment_count(db, passport.wallet)
-        scores = calculate_scores(stats, passport, deployment_count)
+        quest_xp = get_quest_xp(db, passport.wallet)
+        scores = calculate_scores(stats, passport, deployment_count, quest_xp)
         achievements = build_achievements(
             passport,
             stats,

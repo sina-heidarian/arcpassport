@@ -50,6 +50,11 @@ Invoke-SmokeRequest `
     -Url "$BaseUrl/"
 
 Invoke-SmokeRequest `
+    -Name "Health" `
+    -Method "GET" `
+    -Url "$BaseUrl/health"
+
+Invoke-SmokeRequest `
     -Name "Passport" `
     -Method "GET" `
     -Url "$BaseUrl/passport/$SampleWallet"

@@ -1,6 +1,9 @@
+import logging
+
 import requests
 
 ARCSCAN_BASE_URL = "https://testnet.arcscan.app/api/v2"
+logger = logging.getLogger(__name__)
 
 
 def fetch_json(path: str):
@@ -29,7 +32,7 @@ def get_wallet_tokens(wallet: str):
 def safe_int(value, default=0):
     try:
         return int(value)
-    except Exception:
+    except (TypeError, ValueError):
         return default
 
 
@@ -68,12 +71,22 @@ def build_wallet_stats(wallet: str):
 
     try:
         token_transfers = get_wallet_token_transfers(wallet)
-    except Exception:
+    except requests.RequestException as error:
+        logger.warning(
+            "ArcScan token transfers unavailable wallet=%s error=%s",
+            wallet,
+            error,
+        )
         token_transfers = {"items": []}
 
     try:
         tokens = get_wallet_tokens(wallet)
-    except Exception:
+    except requests.RequestException as error:
+        logger.warning(
+            "ArcScan tokens unavailable wallet=%s error=%s",
+            wallet,
+            error,
+        )
         tokens = {"items": []}
 
     tx_items = txs.get("items", [])

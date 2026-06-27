@@ -8,6 +8,7 @@ type NavbarProps = {
     | "home"
     | "dashboard"
     | "workspace"
+    | "quests"
     | "leaderboard"
     | "faucet"
     | "integrations";
@@ -18,6 +19,7 @@ const links = [
   { href: "/", label: "Home", key: "home" },
   { href: "/dashboard", label: "Dashboard", key: "dashboard" },
   { href: "/tools", label: "Workspace", key: "workspace" },
+  { href: "/quests", label: "Quests", key: "quests" },
   { href: "/leaderboard", label: "Leaderboard", key: "leaderboard" },
   { href: "/faucet", label: "Faucet", key: "faucet" },
   { href: "/integrations", label: "Integrations", key: "integrations" },
@@ -69,6 +71,7 @@ export default function Navbar({ active = "home", compact }: NavbarProps) {
 function subtitleFor(active: NonNullable<NavbarProps["active"]>) {
   if (active === "dashboard") return "Your Arc builder dashboard";
   if (active === "workspace") return "Builder Workspace";
+  if (active === "quests") return "Arc builder quests";
   if (active === "leaderboard") return "Arc builder rankings";
   if (active === "faucet") return "Arc Testnet Faucet";
   if (active === "integrations") return "Circle integration blueprints";

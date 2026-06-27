@@ -3,6 +3,26 @@ from typing import Literal
 from pydantic import BaseModel
 
 
+class RootResponse(BaseModel):
+    message: str
+
+
+class HealthResponse(BaseModel):
+    status: str
+
+
+class CircleStatusResponse(BaseModel):
+    configured: bool
+    base_url: str
+    message: str
+
+
+class CircleWalletsStatusResponse(BaseModel):
+    ready: bool
+    mode: Literal["mock"]
+    message: str
+
+
 class CircleDeployRequest(BaseModel):
     wallet: str
     contract_type: str

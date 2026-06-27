@@ -1,6 +1,10 @@
+import logging
+
 from sqlalchemy.orm import Session
 
 from app.models import Deployment
+
+logger = logging.getLogger(__name__)
 
 
 def get_deployment_count(db: Session, wallet: str):
@@ -17,6 +21,7 @@ def save_deployment(db: Session, payload: dict):
     wallet = payload["wallet"].lower()
     contract_address = payload["contract_address"]
     tx_hash = payload["tx_hash"]
+    logger.info("Deployment save requested wallet=%s tx_hash=%s", wallet, tx_hash)
 
     existing_deployment = (
         db.query(Deployment)
@@ -25,6 +30,7 @@ def save_deployment(db: Session, payload: dict):
     )
 
     if existing_deployment:
+        logger.info("Deployment already saved tx_hash=%s", tx_hash)
         return {
             "success": True,
             "reward_xp": 0,
@@ -40,6 +46,12 @@ def save_deployment(db: Session, payload: dict):
     db.add(deployment)
     get_or_create_passport(db, wallet)
     db.commit()
+    logger.info(
+        "Deployment saved wallet=%s contract_address=%s tx_hash=%s",
+        wallet,
+        contract_address,
+        tx_hash,
+    )
 
     return {
         "success": True,

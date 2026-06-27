@@ -29,10 +29,12 @@ export type Passport = {
   checkin_xp: number;
   deployment_count: number;
   deployment_xp: number;
+  quest_xp: number;
   xp_breakdown: {
     onchain_xp: number;
     deployment_xp: number;
     checkin_xp: number;
+    quest_xp: number;
     total_xp: number;
   };
   achievements: Achievement[];
@@ -76,4 +78,54 @@ export type Achievement = {
   progress: number;
   target: number;
   icon: string;
+};
+
+export type QuestStatus = "completed" | "in_progress" | "locked";
+
+export type Quest = {
+  id: number;
+  title: string;
+  description: string;
+  category: "Onchain" | "Deploy" | "Social" | "Learning" | "Builder";
+  xp_reward: number;
+  requirement_type: string;
+  requirement_value: number;
+  is_repeatable: boolean;
+  progress?: number;
+  target?: number;
+  status?: QuestStatus;
+  completed?: boolean;
+  in_progress?: boolean;
+  locked?: boolean;
+  claimable?: boolean;
+  claimed_xp?: number;
+  completed_at?: string | null;
+};
+
+export type QuestSummary = {
+  total: number;
+  completed: number;
+  in_progress: number;
+  locked: number;
+  total_xp_available: number;
+  total_xp_completed: number;
+};
+
+export type QuestListResponse = {
+  quests: Quest[];
+};
+
+export type WalletQuestsResponse = {
+  wallet: string;
+  summary: QuestSummary;
+  quests: Quest[];
+};
+
+export type QuestClaimResponse = {
+  success: boolean;
+  message: string;
+  wallet: string;
+  quest_id: number;
+  xp_reward: number;
+  completed_at: string;
 };

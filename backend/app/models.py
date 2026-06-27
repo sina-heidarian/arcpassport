@@ -1,8 +1,6 @@
 from datetime import datetime, date
-from sqlalchemy import Column, String, Integer, Date, DateTime
+from sqlalchemy import Boolean, Column, String, Integer, Date, DateTime, UniqueConstraint
 from app.database import Base
-from sqlalchemy import Column, Integer, String, DateTime
-from datetime import datetime
 
 class Passport(Base):
     __tablename__ = "passports"
@@ -30,3 +28,29 @@ class Deployment(Base):
     contract_address = Column(String)
     tx_hash = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Quest(Base):
+    __tablename__ = "quests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    category = Column(String, nullable=False)
+    xp_reward = Column(Integer, nullable=False)
+    requirement_type = Column(String, unique=True, index=True, nullable=False)
+    requirement_value = Column(Integer, nullable=False)
+    is_repeatable = Column(Boolean, default=False)
+
+
+class QuestCompletion(Base):
+    __tablename__ = "quest_completions"
+    __table_args__ = (
+        UniqueConstraint("wallet", "quest_id", name="uq_quest_completion_wallet_quest"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    wallet = Column(String, index=True, nullable=False)
+    quest_id = Column(Integer, index=True, nullable=False)
+    xp_reward = Column(Integer, nullable=False)
+    completed_at = Column(DateTime, default=datetime.utcnow)

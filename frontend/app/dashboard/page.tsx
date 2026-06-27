@@ -9,6 +9,7 @@ import BuilderWorkspaceCTA from "@/components/BuilderWorkspaceCTA";
 import Navbar from "@/components/Navbar";
 import PassportCard from "@/components/PassportCard";
 import { usePassportContext } from "@/components/PassportProvider";
+import QuestProgress from "@/components/QuestProgress";
 import PublicPassportShare from "@/components/PublicPassportShare";
 
 export default function DashboardPage() {
@@ -64,6 +65,7 @@ export default function DashboardPage() {
               totalAchievements={achievements.length}
             />
             <BuilderScoreBreakdown breakdown={passport.xp_breakdown} />
+            <QuestProgress wallet={passport.wallet} />
             <PublicPassportShare wallet={passport.wallet} />
             <BuilderWorkspaceCTA />
             <Achievements achievements={achievements.slice(0, 4)} />
