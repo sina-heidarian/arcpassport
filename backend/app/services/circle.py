@@ -1,6 +1,8 @@
 import logging
 import uuid
 
+import requests
+
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -8,6 +10,8 @@ logger = logging.getLogger(__name__)
 SUPPORTED_CIRCLE_CONTRACT_TYPES = {"counter", "erc20", "erc721"}
 SUPPORTED_CIRCLE_WALLET_TYPES = {"developer", "user"}
 SUPPORTED_GAS_SPONSORSHIP_ACTIONS = ["deploy_contract", "mint_passport", "checkin"]
+CIRCLE_AUTH_CHECK_ENDPOINT = "/v1/w3s/wallets"
+AUTH_HEADER_REDACTION = "Bearer <redacted>"
 
 
 def get_circle_base_url():
@@ -18,19 +22,140 @@ def is_circle_configured():
     return bool(settings.circle_api_key)
 
 
-def get_circle_status():
+def check_circle_auth_status():
+    """Check Circle auth with a safe non-mutating API request."""
     configured = is_circle_configured()
-    logger.info("Circle status checked: configured=%s", configured)
+    base_url = get_circle_base_url()
 
-    return {
-        "configured": configured,
-        "base_url": get_circle_base_url(),
-        "message": (
-            "Circle API key configured"
-            if configured
-            else "Circle API key missing"
-        ),
+    if not configured:
+        logger.info("Circle auth status checked without API key")
+        status = {
+            "configured": False,
+            "base_url": base_url,
+            "auth_checked": False,
+            "auth_ok": False,
+            "status_code": None,
+            "endpoint_used": CIRCLE_AUTH_CHECK_ENDPOINT,
+            "message": "Circle API key missing",
+        }
+        return maybe_include_circle_debug(
+            status,
+            request_url=None,
+            request_headers=None,
+            response_body=None,
+        )
+
+    auth_check_url = f"{base_url.rstrip('/')}{CIRCLE_AUTH_CHECK_ENDPOINT}"
+    auth_headers = get_circle_auth_headers()
+    safe_auth_headers = redact_circle_headers(auth_headers)
+
+    try:
+        response = requests.get(
+            auth_check_url,
+            headers=auth_headers,
+            timeout=10,
+        )
+    except requests.RequestException as error:
+        logger.warning("Circle auth check network error: %s", error.__class__.__name__)
+        status = {
+            "configured": True,
+            "base_url": base_url,
+            "auth_checked": True,
+            "auth_ok": False,
+            "status_code": None,
+            "endpoint_used": CIRCLE_AUTH_CHECK_ENDPOINT,
+            "message": "Circle auth check failed due to a network error",
+        }
+        return maybe_include_circle_debug(
+            status,
+            request_url=auth_check_url,
+            request_headers=safe_auth_headers,
+            response_body=None,
+        )
+
+    safe_response_body = truncate_response_body(response.text)
+
+    if response.ok:
+        logger.info("Circle auth check succeeded with status=%s", response.status_code)
+        status = {
+            "configured": True,
+            "base_url": base_url,
+            "auth_checked": True,
+            "auth_ok": True,
+            "status_code": response.status_code,
+            "endpoint_used": CIRCLE_AUTH_CHECK_ENDPOINT,
+            "message": "Circle API key configured and authentication succeeded",
+        }
+        return maybe_include_circle_debug(
+            status,
+            request_url=auth_check_url,
+            request_headers=safe_auth_headers,
+            response_body=safe_response_body,
+        )
+
+    if response.status_code in {401, 403}:
+        logger.warning("Circle auth check rejected with status=%s", response.status_code)
+        status = {
+            "configured": True,
+            "base_url": base_url,
+            "auth_checked": True,
+            "auth_ok": False,
+            "status_code": response.status_code,
+            "endpoint_used": CIRCLE_AUTH_CHECK_ENDPOINT,
+            "message": "Circle API key configured but authentication failed",
+        }
+        return maybe_include_circle_debug(
+            status,
+            request_url=auth_check_url,
+            request_headers=safe_auth_headers,
+            response_body=safe_response_body,
+        )
+
+    if response.status_code == 404:
+        logger.warning("Circle auth check endpoint not found with status=404")
+        status = {
+            "configured": True,
+            "base_url": base_url,
+            "auth_checked": True,
+            "auth_ok": False,
+            "status_code": response.status_code,
+            "endpoint_used": CIRCLE_AUTH_CHECK_ENDPOINT,
+            "message": "Circle auth check endpoint was not found",
+        }
+        return maybe_include_circle_debug(
+            status,
+            request_url=auth_check_url,
+            request_headers=safe_auth_headers,
+            response_body=safe_response_body,
+        )
+
+    logger.warning("Circle auth check failed with status=%s", response.status_code)
+    status = {
+        "configured": True,
+        "base_url": base_url,
+        "auth_checked": True,
+        "auth_ok": False,
+        "status_code": response.status_code,
+        "endpoint_used": CIRCLE_AUTH_CHECK_ENDPOINT,
+        "message": "Circle auth check failed",
     }
+    return maybe_include_circle_debug(
+        status,
+        request_url=auth_check_url,
+        request_headers=safe_auth_headers,
+        response_body=safe_response_body,
+    )
+
+
+def get_circle_status():
+    status = check_circle_auth_status()
+    logger.info(
+        "Circle status checked: configured=%s auth_checked=%s auth_ok=%s",
+        status["configured"],
+        status["auth_checked"],
+        status["auth_ok"],
+    )
+    return status
 
 
 def get_circle_headers():
@@ -44,6 +169,52 @@ def get_circle_headers():
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
+
+
+def get_circle_auth_headers():
+    api_key = settings.circle_api_key
+
+    if not api_key:
+        logger.warning("Circle auth headers requested without CIRCLE_API_KEY")
+        raise RuntimeError("CIRCLE_API_KEY is not configured")
+
+    return {
+        "accept": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
+
+
+def redact_circle_headers(headers: dict[str, str]) -> dict[str, str]:
+    safe_headers = dict(headers)
+
+    if "Authorization" in safe_headers:
+        safe_headers["Authorization"] = AUTH_HEADER_REDACTION
+
+    return safe_headers
+
+
+def maybe_include_circle_debug(
+    status: dict,
+    request_url: str | None,
+    request_headers: dict[str, str] | None,
+    response_body: str | None,
+):
+    if not settings.circle_debug:
+        return status
+
+    return {
+        **status,
+        "request_url": request_url,
+        "request_headers": request_headers,
+        "response_body": response_body,
+    }
+
+
+def truncate_response_body(response_body: str, max_length: int = 1000) -> str:
+    if len(response_body) <= max_length:
+        return response_body
+
+    return f"{response_body[:max_length]}..."
 
 
 def generate_idempotency_key():

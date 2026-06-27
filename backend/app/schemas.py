@@ -14,6 +14,13 @@ class HealthResponse(BaseModel):
 class CircleStatusResponse(BaseModel):
     configured: bool
     base_url: str
+    auth_checked: bool
+    auth_ok: bool
+    status_code: int | None
+    endpoint_used: str | None
+    request_url: str | None = None
+    request_headers: dict[str, str] | None = None
+    response_body: str | None = None
     message: str
 
 

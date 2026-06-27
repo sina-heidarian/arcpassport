@@ -27,6 +27,7 @@ router = APIRouter(tags=["Circle Blueprints"])
 @router.get(
     "/circle/status",
     response_model=CircleStatusResponse,
+    response_model_exclude_none=True,
     summary="Circle configuration status",
     description="Report whether backend-only Circle API configuration is present without exposing secrets.",
 )

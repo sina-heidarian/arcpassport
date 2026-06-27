@@ -30,7 +30,19 @@ Docker health checks are configured for `db`, `backend`, and `frontend`.
 Use `docker compose ps` to inspect service health.
 
 `/circle/status` should return `configured: false` unless a backend-only
-`CIRCLE_API_KEY` is configured. Do not put Circle API keys in frontend env vars.
+`CIRCLE_API_KEY` is configured. Use `CIRCLE_BASE_URL=https://api.circle.com`
+for the documented Circle API-key auth check. Do not put Circle API keys in
+frontend env vars.
+When `CIRCLE_API_KEY` is set in backend env, `/circle/status` performs a safe
+non-mutating Circle auth check and returns `auth_checked` and `auth_ok`.
+Never expose `CIRCLE_API_KEY` through `NEXT_PUBLIC_*` frontend variables.
+`/circle/status` does not return request headers or raw Circle response bodies
+by default. Set backend-only `CIRCLE_DEBUG=true` only when temporary auth
+debugging is needed; Authorization is still redacted.
+
+```bash
+curl http://localhost:8000/circle/status
+```
 
 ## Frontend Checks
 

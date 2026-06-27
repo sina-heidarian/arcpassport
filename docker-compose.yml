@@ -22,7 +22,9 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://arc:arcpass@db:5432/arcpassport
-      CIRCLE_BASE_URL: https://api-sandbox.circle.com
+      CIRCLE_BASE_URL: https://api.circle.com
+      CIRCLE_API_KEY: ${CIRCLE_API_KEY:-}
+      CIRCLE_DEBUG: ${CIRCLE_DEBUG:-false}
       CORS_ORIGINS: http://localhost:3000,http://localhost:3001
       LOG_LEVEL: INFO
     healthcheck:
