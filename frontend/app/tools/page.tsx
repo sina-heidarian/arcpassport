@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useDeployContract, useWaitForTransactionReceipt } from "wagmi";
+import CircleContractsCard from "@/components/CircleContractsCard";
+import CircleWalletsCard from "@/components/CircleWalletsCard";
 import DailyCheckin from "@/components/DailyCheckin";
 import DeployCard from "@/components/DeployCard";
 import MintPassport from "@/components/MintPassport";
@@ -288,6 +290,9 @@ export default function ToolsPage() {
         </section>
 
         <div className="space-y-8">
+          <CircleContractsCard />
+          <CircleWalletsCard />
+
           {toolSections.map((section) => (
             <section key={section.title} className="space-y-4">
               <div>

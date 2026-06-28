@@ -45,6 +45,21 @@ export function useQuests(wallet?: string | null) {
     void Promise.resolve().then(() => loadQuests());
   }, [loadQuests]);
 
+  useEffect(() => {
+    function handleQuestRefresh() {
+      void loadQuests();
+    }
+
+    window.addEventListener("arcpassport:quests-refresh", handleQuestRefresh);
+
+    return () => {
+      window.removeEventListener(
+        "arcpassport:quests-refresh",
+        handleQuestRefresh
+      );
+    };
+  }, [loadQuests]);
+
   const claimQuest = useCallback(
     async (questId: number) => {
       if (!wallet) {

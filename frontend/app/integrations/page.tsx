@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
+import CircleContractsCard from "@/components/CircleContractsCard";
+import CircleWalletsCard from "@/components/CircleWalletsCard";
 import Navbar from "@/components/Navbar";
 import { apiGet, apiPost } from "@/lib/api";
 
@@ -105,8 +107,8 @@ export default function IntegrationsPage() {
         <section className="space-y-3">
           <h2 className="text-3xl font-bold">Circle Integration Status</h2>
           <p className="max-w-2xl text-gray-400">
-            Internal checks for ArcPassport Circle integration blueprints. These
-            calls use mock endpoints only.
+            Internal checks for ArcPassport Circle integration blueprints and
+            read-only Circle wallet data.
           </p>
           {!isConnected && (
             <p className="text-sm text-yellow-300">
@@ -124,6 +126,9 @@ export default function IntegrationsPage() {
             />
           ))}
         </section>
+
+        <CircleWalletsCard />
+        <CircleContractsCard />
 
         <section className="space-y-4">
           <div>

@@ -30,6 +30,55 @@ class CircleWalletsStatusResponse(BaseModel):
     message: str
 
 
+class CircleWallet(BaseModel):
+    id: str | None = None
+    state: str | None = None
+    walletSetId: str | None = None
+    custodyType: str | None = None
+    address: str | None = None
+    blockchain: str | None = None
+    accountType: str | None = None
+    createDate: str | None = None
+    updateDate: str | None = None
+    scaCore: str | None = None
+
+
+class CircleWalletsListResponse(BaseModel):
+    success: bool
+    mode: Literal["real"]
+    wallets: list[CircleWallet]
+
+
+class CircleContract(BaseModel):
+    id: str | None = None
+    name: str | None = None
+    description: str | None = None
+    contractAddress: str | None = None
+    blockchain: str | None = None
+    deployerAddress: str | None = None
+    status: str | None = None
+    updateDate: str | None = None
+    createDate: str | None = None
+
+
+class CircleContractsListResponse(BaseModel):
+    success: bool
+    mode: Literal["real"]
+    contracts: list[CircleContract]
+
+
+class CircleContractImportRequest(BaseModel):
+    wallet: str
+    contract_id: str
+
+
+class CircleContractImportResponse(BaseModel):
+    success: bool
+    imported: bool
+    message: str
+    deployment: dict
+
+
 class CircleDeployRequest(BaseModel):
     wallet: str
     contract_type: str

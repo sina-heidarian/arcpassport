@@ -1,22 +1,32 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 
+from app.dependencies import get_db
 from app.http_errors import raise_bad_request
 from app.schemas import (
+    CircleContractImportRequest,
+    CircleContractImportResponse,
+    CircleContractsListResponse,
     CircleDeployRequest,
     CircleDeployResponse,
     CircleStatusResponse,
     CircleWalletCreateRequest,
     CircleWalletCreateResponse,
+    CircleWalletsListResponse,
     CircleWalletsStatusResponse,
     GasSponsorshipEstimateRequest,
     GasSponsorshipEstimateResponse,
     GasSponsorshipStatusResponse,
 )
 from app.services.circle import (
+    CircleApiError,
     estimate_gas_sponsorship,
     get_circle_status,
     get_paymaster_status,
     get_wallets_status,
+    import_circle_contract,
+    list_circle_contracts,
+    list_circle_wallets,
     prepare_contract_deploy,
     prepare_wallet_create,
 )
@@ -52,6 +62,40 @@ def prepare_circle_contract_deploy(payload: CircleDeployRequest):
 
 
 @router.get(
+    "/circle/contracts",
+    response_model=CircleContractsListResponse,
+    response_model_exclude_none=True,
+    summary="List Circle contracts",
+    description="Fetch existing Circle contracts without deploying contracts or creating transactions.",
+)
+def circle_contracts():
+    try:
+        return list_circle_contracts()
+    except CircleApiError as error:
+        raise HTTPException(status_code=error.status_code, detail=str(error))
+
+
+@router.post(
+    "/circle/contracts/import",
+    response_model=CircleContractImportResponse,
+    summary="Import Circle contract",
+    description="Import an existing Circle contract into ArcPassport deployment tracking without deploying or transacting.",
+)
+def import_contract(
+    payload: CircleContractImportRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+        return import_circle_contract(
+            db=db,
+            wallet=payload.wallet,
+            contract_id=payload.contract_id,
+        )
+    except CircleApiError as error:
+        raise HTTPException(status_code=error.status_code, detail=str(error))
+
+
+@router.get(
     "/circle/wallets/status",
     response_model=CircleWalletsStatusResponse,
     summary="Circle Wallets blueprint status",
@@ -59,6 +103,20 @@ def prepare_circle_contract_deploy(payload: CircleDeployRequest):
 )
 def circle_wallets_status():
     return get_wallets_status()
+
+
+@router.get(
+    "/circle/wallets",
+    response_model=CircleWalletsListResponse,
+    response_model_exclude_none=True,
+    summary="List Circle wallets",
+    description="Fetch existing Circle developer-controlled wallets without creating wallets or transactions.",
+)
+def circle_wallets():
+    try:
+        return list_circle_wallets()
+    except CircleApiError as error:
+        raise HTTPException(status_code=error.status_code, detail=str(error))
 
 
 @router.post(

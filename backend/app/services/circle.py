@@ -2,8 +2,10 @@ import logging
 import uuid
 
 import requests
+from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.services.deployments import save_deployment
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +13,37 @@ SUPPORTED_CIRCLE_CONTRACT_TYPES = {"counter", "erc20", "erc721"}
 SUPPORTED_CIRCLE_WALLET_TYPES = {"developer", "user"}
 SUPPORTED_GAS_SPONSORSHIP_ACTIONS = ["deploy_contract", "mint_passport", "checkin"]
 CIRCLE_AUTH_CHECK_ENDPOINT = "/v1/w3s/wallets"
+CIRCLE_CONTRACTS_ENDPOINT = "/v1/w3s/contracts"
 AUTH_HEADER_REDACTION = "Bearer <redacted>"
+CIRCLE_SAFE_WALLET_FIELDS = [
+    "id",
+    "state",
+    "walletSetId",
+    "custodyType",
+    "address",
+    "blockchain",
+    "accountType",
+    "createDate",
+    "updateDate",
+    "scaCore",
+]
+CIRCLE_SAFE_CONTRACT_FIELDS = [
+    "id",
+    "name",
+    "description",
+    "contractAddress",
+    "blockchain",
+    "deployerAddress",
+    "status",
+    "updateDate",
+    "createDate",
+]
+
+
+class CircleApiError(RuntimeError):
+    def __init__(self, message: str, status_code: int = 502):
+        super().__init__(message)
+        self.status_code = status_code
 
 
 def get_circle_base_url():
@@ -272,6 +304,192 @@ def get_wallets_status():
         "ready": True,
         "mode": "mock",
         "message": "Circle Wallets blueprint is ready",
+    }
+
+
+def list_circle_wallets():
+    """Fetch existing Circle wallets without mutating Circle or local state."""
+    if not is_circle_configured():
+        logger.warning("Circle wallet list requested without CIRCLE_API_KEY")
+        raise CircleApiError("Circle API key is not configured", status_code=500)
+
+    wallets_url = f"{get_circle_base_url().rstrip('/')}{CIRCLE_AUTH_CHECK_ENDPOINT}"
+
+    try:
+        response = requests.get(
+            wallets_url,
+            headers=get_circle_auth_headers(),
+            timeout=10,
+        )
+    except requests.RequestException as error:
+        logger.warning("Circle wallet list network error: %s", error.__class__.__name__)
+        raise CircleApiError("Circle wallet list failed due to a network error") from error
+
+    if response.status_code in {401, 403}:
+        logger.warning("Circle wallet list rejected with status=%s", response.status_code)
+        raise CircleApiError(
+            "Circle API authentication failed",
+            status_code=502,
+        )
+
+    if not response.ok:
+        logger.warning("Circle wallet list failed with status=%s", response.status_code)
+        raise CircleApiError("Circle wallet list request failed")
+
+    try:
+        payload = response.json()
+    except ValueError as error:
+        logger.warning("Circle wallet list returned invalid JSON")
+        raise CircleApiError("Circle wallet list returned invalid JSON") from error
+
+    wallets = extract_circle_wallets(payload)
+    return {
+        "success": True,
+        "mode": "real",
+        "wallets": [sanitize_circle_wallet(wallet) for wallet in wallets],
+    }
+
+
+def list_circle_contracts():
+    """Fetch existing Circle contracts without mutating Circle or local state."""
+    if not is_circle_configured():
+        logger.warning("Circle contract list requested without CIRCLE_API_KEY")
+        raise CircleApiError("Circle API key is not configured", status_code=500)
+
+    contracts_url = f"{get_circle_base_url().rstrip('/')}{CIRCLE_CONTRACTS_ENDPOINT}"
+
+    try:
+        response = requests.get(
+            contracts_url,
+            headers=get_circle_auth_headers(),
+            timeout=10,
+        )
+    except requests.RequestException as error:
+        logger.warning("Circle contract list network error: %s", error.__class__.__name__)
+        raise CircleApiError("Circle contract list failed due to a network error") from error
+
+    if response.status_code == 404:
+        logger.warning("Circle contract list endpoint returned 404")
+        raise CircleApiError(
+            "Circle Contracts listing is not available yet.",
+            status_code=404,
+        )
+
+    if response.status_code in {401, 403}:
+        logger.warning("Circle contract list rejected with status=%s", response.status_code)
+        raise CircleApiError(
+            "Circle API authentication failed",
+            status_code=502,
+        )
+
+    if not response.ok:
+        logger.warning("Circle contract list failed with status=%s", response.status_code)
+        raise CircleApiError("Circle contract list request failed")
+
+    try:
+        payload = response.json()
+    except ValueError as error:
+        logger.warning("Circle contract list returned invalid JSON")
+        raise CircleApiError("Circle contract list returned invalid JSON") from error
+
+    contracts = extract_circle_contracts(payload)
+    return {
+        "success": True,
+        "mode": "real",
+        "contracts": [
+            sanitize_circle_contract(contract)
+            for contract in contracts
+        ],
+    }
+
+
+def import_circle_contract(db: Session, wallet: str, contract_id: str):
+    """Import an existing Circle contract into local deployment tracking."""
+    contracts = list_circle_contracts()["contracts"]
+    contract = next(
+        (
+            candidate
+            for candidate in contracts
+            if candidate.get("id") == contract_id
+        ),
+        None,
+    )
+
+    if not contract:
+        raise CircleApiError("Circle contract not found", status_code=404)
+
+    contract_address = contract.get("contractAddress")
+
+    if not contract_address:
+        raise CircleApiError(
+            "Circle contract does not include a contract address",
+            status_code=400,
+        )
+
+    tx_hash = (
+        contract.get("txHash")
+        or contract.get("transactionHash")
+        or f"circle-contract:{contract_id}"
+    )
+    saved = save_deployment(
+        db,
+        {
+            "wallet": wallet,
+            "contract_address": contract_address,
+            "tx_hash": tx_hash,
+        },
+    )
+    imported = saved.get("reward_xp", 0) > 0
+
+    return {
+        "success": True,
+        "imported": imported,
+        "message": (
+            "Circle contract imported"
+            if imported
+            else "Circle contract already imported"
+        ),
+        "deployment": saved["deployment"],
+    }
+
+
+def extract_circle_wallets(payload: dict):
+    data = payload.get("data")
+
+    if isinstance(data, dict) and isinstance(data.get("wallets"), list):
+        return data["wallets"]
+
+    if isinstance(payload.get("wallets"), list):
+        return payload["wallets"]
+
+    return []
+
+
+def extract_circle_contracts(payload: dict):
+    data = payload.get("data")
+
+    if isinstance(data, dict) and isinstance(data.get("contracts"), list):
+        return data["contracts"]
+
+    if isinstance(payload.get("contracts"), list):
+        return payload["contracts"]
+
+    return []
+
+
+def sanitize_circle_wallet(wallet: dict):
+    return {
+        field: wallet.get(field)
+        for field in CIRCLE_SAFE_WALLET_FIELDS
+        if field in wallet
+    }
+
+
+def sanitize_circle_contract(contract: dict):
+    return {
+        field: contract.get(field)
+        for field in CIRCLE_SAFE_CONTRACT_FIELDS
+        if field in contract
     }
 
 
