@@ -90,6 +90,26 @@ Invoke-SmokeRequest `
     -Url "$BaseUrl/circle/paymaster/status"
 
 Invoke-SmokeRequest `
+    -Name "Passport NFT Status" `
+    -Method "GET" `
+    -Url "$BaseUrl/api/v1/passport-nft/status"
+
+Invoke-SmokeRequest `
+    -Name "Passport NFT Contract Info" `
+    -Method "GET" `
+    -Url "$BaseUrl/api/v1/passport-nft/contract-info"
+
+Invoke-SmokeRequest `
+    -Name "Passport NFT Ownership" `
+    -Method "GET" `
+    -Url "$BaseUrl/api/v1/passport-nft/$SampleWallet/ownership"
+
+Invoke-SmokeRequest `
+    -Name "Passport NFT Token URI" `
+    -Method "GET" `
+    -Url "$BaseUrl/api/v1/passport/$SampleWallet/token-uri"
+
+Invoke-SmokeRequest `
     -Name "Mock Circle Contract Deploy" `
     -Method "POST" `
     -Url "$BaseUrl/circle/contracts/deploy" `

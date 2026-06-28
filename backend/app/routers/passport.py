@@ -13,11 +13,23 @@ from app.services.passport import (
 )
 from app.schemas import (
     PassportNftEligibilityResponse,
+    PassportNftContractInfoResponse,
     PassportNftMetadataResponse,
+    PassportNftOwnershipResponse,
+    PassportNftStatusResponse,
+    PassportNftTokenUriResponse,
+    PassportNftMintResponse,
 )
 from app.services.passport_nft import (
+    PassportNftMintError,
+    PassportNftReadError,
     build_passport_nft_eligibility,
     build_passport_nft_metadata,
+    build_passport_nft_token_uri,
+    get_passport_nft_contract_info,
+    get_passport_nft_ownership,
+    get_passport_nft_status as build_passport_nft_status,
+    mint_passport_nft,
 )
 
 router = APIRouter(tags=["Passport"])
@@ -53,6 +65,20 @@ def get_passport_metadata(wallet: str, db: Session = Depends(get_db)):
 
 
 @router.get(
+    "/passport/{wallet}/token-uri",
+    response_model=PassportNftTokenUriResponse,
+    summary="Get Builder Passport NFT token URI",
+    description="Return base64 data URI metadata for future ArcPassportSBT minting.",
+)
+def get_passport_token_uri(wallet: str, db: Session = Depends(get_db)):
+    try:
+        return build_passport_nft_token_uri(db, wallet)
+    except Exception:
+        logger.exception("Failed to build passport NFT token URI wallet=%s", wallet)
+        raise HTTPException(status_code=500, detail="Failed to load passport token URI")
+
+
+@router.get(
     "/passport/{wallet}/eligibility",
     response_model=PassportNftEligibilityResponse,
     summary="Get Builder Passport NFT eligibility",
@@ -64,6 +90,65 @@ def get_passport_eligibility(wallet: str, db: Session = Depends(get_db)):
     except Exception:
         logger.exception("Failed to build passport NFT eligibility wallet=%s", wallet)
         raise HTTPException(status_code=500, detail="Failed to load passport eligibility")
+
+
+@router.get(
+    "/passport-nft/status",
+    response_model=PassportNftStatusResponse,
+    summary="Get Builder Passport NFT contract status",
+    description="Return deployed ArcPassportSBT contract registration status for Arc Testnet.",
+)
+def get_passport_nft_status():
+    return build_passport_nft_status()
+
+
+@router.get(
+    "/passport-nft/contract-info",
+    response_model=PassportNftContractInfoResponse,
+    summary="Read Builder Passport NFT contract info",
+    description="Read ArcPassportSBT name, symbol, owner, and optional totalSupply from Arc Testnet without sending transactions.",
+)
+def get_passport_nft_contract_info_endpoint():
+    try:
+        return get_passport_nft_contract_info()
+    except PassportNftReadError as error:
+        raise HTTPException(status_code=503, detail=str(error))
+
+
+@router.get(
+    "/passport-nft/{wallet}/ownership",
+    response_model=PassportNftOwnershipResponse,
+    summary="Read Builder Passport NFT ownership",
+    description="Check whether a wallet owns an ArcPassportSBT without sending transactions.",
+)
+def get_passport_nft_ownership_endpoint(wallet: str):
+    try:
+        return get_passport_nft_ownership(wallet)
+    except PassportNftReadError as error:
+        raise HTTPException(status_code=503, detail=str(error))
+
+
+@router.post(
+    "/passport-nft/{wallet}/mint",
+    response_model=PassportNftMintResponse,
+    summary="Mint Builder Passport NFT",
+    description="Mint ArcPassportSBT from the backend admin wallet after eligibility and ownership checks.",
+)
+def post_passport_nft_mint(wallet: str, db: Session = Depends(get_db)):
+    try:
+        return mint_passport_nft(db, wallet)
+    except PassportNftMintError as error:
+        message = str(error)
+        status_code = 400
+
+        if "not configured" in message or "unavailable" in message:
+            status_code = 503
+        if "already minted" in message.lower():
+            status_code = 409
+
+        raise HTTPException(status_code=status_code, detail=message)
+    except PassportNftReadError as error:
+        raise HTTPException(status_code=503, detail=str(error))
 
 
 @router.patch(

@@ -5,6 +5,7 @@ import { useAccount } from "wagmi";
 import CircleContractsCard from "@/components/CircleContractsCard";
 import CircleWalletsCard from "@/components/CircleWalletsCard";
 import Navbar from "@/components/Navbar";
+import SbtContractStatus from "@/components/SbtContractStatus";
 import { apiGet, apiPost } from "@/lib/api";
 
 const SAMPLE_WALLET = "0x4f982AbB319Afb4b5E7c164E7A97A45968a90681";
@@ -116,6 +117,8 @@ export default function IntegrationsPage() {
             </p>
           )}
         </section>
+
+        <SbtContractStatus />
 
         <section className="space-y-4">
           <div>

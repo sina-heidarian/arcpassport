@@ -10,6 +10,7 @@ import MintPassport from "@/components/MintPassport";
 import Navbar from "@/components/Navbar";
 import { usePassportContext } from "@/components/PassportProvider";
 import PassportReadinessCard from "@/components/PassportReadinessCard";
+import SbtContractStatus from "@/components/SbtContractStatus";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { apiPost } from "@/lib/api";
 import { counterAbi, counterBytecode } from "@/lib/counterContract";
@@ -213,6 +214,7 @@ export default function ToolsPage() {
         />
 
         <PassportReadinessCard wallet={passport?.wallet ?? wallet} />
+        <SbtContractStatus compact />
 
         {!isConnected && (
           <div className="bg-zinc-900 rounded-2xl p-6">

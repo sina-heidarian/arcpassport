@@ -27,6 +27,9 @@ services:
       CIRCLE_DEBUG: ${CIRCLE_DEBUG:-false}
       CORS_ORIGINS: http://localhost:3000,http://localhost:3001
       LOG_LEVEL: INFO
+      ARCPASSPORT_SBT_ADDRESS: ${ARCPASSPORT_SBT_ADDRESS:-0x68b28900F0e3cD760F0e34084CB7736E18a7931c}
+      ARC_TESTNET_RPC_URL: ${ARC_TESTNET_RPC_URL:-}
+      DEPLOYER_PRIVATE_KEY: ${DEPLOYER_PRIVATE_KEY:-}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
       interval: 10s
@@ -43,7 +46,7 @@ services:
     environment:
       INTERNAL_API_URL: http://backend:8000
       NEXT_PUBLIC_API_URL: http://localhost:8000
-      NEXT_PUBLIC_ARCPASSPORT_SBT_ADDRESS: 0x68b28900F0e3cD760F0e34084CB7736E18a7931c
+      NEXT_PUBLIC_ARCPASSPORT_SBT_ADDRESS: ${NEXT_PUBLIC_ARCPASSPORT_SBT_ADDRESS:-0x68b28900F0e3cD760F0e34084CB7736E18a7931c}
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 10s

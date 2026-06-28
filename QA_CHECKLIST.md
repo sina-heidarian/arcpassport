@@ -59,7 +59,19 @@ Use this checklist before continuing feature work or before a commit that change
 - [ ] Shows contracts
 - [ ] Share button works
 
-## H. Backend Smoke Test
+## H. Passport NFT
+
+- [ ] Opens `/passport/mint`
+- [ ] Contract status loads
+- [ ] Contract info loads
+- [ ] Ownership check loads
+- [ ] Already minted wallet shows Token ID
+- [ ] Full `token_uri` is hidden by default
+- [ ] Metadata toggle works if implemented
+- [ ] Mint button is disabled if already minted
+- [ ] Mint button is only enabled if eligible and not minted
+
+## I. Backend Smoke Test
 
 - [ ] Run backend smoke test:
 
@@ -67,7 +79,7 @@ Use this checklist before continuing feature work or before a commit that change
 .\scripts\smoke_test_backend.ps1
 ```
 
-## I. Frontend Smoke Test
+## J. Frontend Smoke Test
 
 - [ ] Run frontend smoke test:
 

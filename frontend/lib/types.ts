@@ -139,6 +139,7 @@ export type PassportNftMetadata = {
   name: string;
   description: string;
   image: string;
+  external_url: string;
   attributes: PassportNftAttribute[];
 };
 
@@ -153,4 +154,49 @@ export type PassportNftEligibility = {
   eligible: boolean;
   reason: string;
   requirements: PassportNftRequirement[];
+};
+
+export type PassportNftStatus = {
+  configured: boolean;
+  contract_address: string | null;
+  network: string;
+  explorer_url: string | null;
+};
+
+export type PassportNftContractInfo = {
+  name: string | null;
+  symbol: string | null;
+  owner: string | null;
+  totalSupply: number | null;
+  contract_address: string;
+  network: string;
+  explorer_url: string;
+};
+
+export type PassportNftOwnership = {
+  wallet: string;
+  owns_passport: boolean;
+  token_id: number | null;
+  token_uri: string | null;
+  contract_address: string;
+  explorer_url: string;
+};
+
+export type PassportNftTokenUri = {
+  wallet: string;
+  token_uri: string;
+};
+
+export type PassportNftMintResponse = {
+  success: boolean;
+  wallet: string;
+  tx_hash: string | null;
+  receipt_tx_hash?: string | null;
+  block_number?: number | null;
+  contract_address: string;
+  token_id: number | null;
+  token_uri: string | null;
+  explorer_url: string;
+  already_minted: boolean;
+  message: string;
 };

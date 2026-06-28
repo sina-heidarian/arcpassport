@@ -26,6 +26,7 @@ class PassportNftMetadataResponse(BaseModel):
     name: str
     description: str
     image: str
+    external_url: str
     attributes: list[PassportNftAttribute]
 
 
@@ -40,6 +41,51 @@ class PassportNftEligibilityResponse(BaseModel):
     eligible: bool
     reason: str
     requirements: list[PassportNftRequirement]
+
+
+class PassportNftStatusResponse(BaseModel):
+    configured: bool
+    contract_address: str | None
+    network: str
+    explorer_url: str | None
+
+
+class PassportNftContractInfoResponse(BaseModel):
+    name: str | None
+    symbol: str | None
+    owner: str | None
+    totalSupply: int | None
+    contract_address: str
+    network: str
+    explorer_url: str
+
+
+class PassportNftOwnershipResponse(BaseModel):
+    wallet: str
+    owns_passport: bool
+    token_id: int | None
+    token_uri: str | None
+    contract_address: str
+    explorer_url: str
+
+
+class PassportNftTokenUriResponse(BaseModel):
+    wallet: str
+    token_uri: str
+
+
+class PassportNftMintResponse(BaseModel):
+    success: bool
+    wallet: str
+    tx_hash: str | None
+    receipt_tx_hash: str | None = None
+    block_number: int | None = None
+    contract_address: str
+    token_id: int | None
+    token_uri: str | None
+    explorer_url: str
+    already_minted: bool = False
+    message: str
 
 
 class CircleStatusResponse(BaseModel):

@@ -5,6 +5,7 @@ import BuilderProfile from "@/components/BuilderProfile";
 import BuilderScoreBreakdown from "@/components/BuilderScoreBreakdown";
 import Navbar from "@/components/Navbar";
 import PassportCard from "@/components/PassportCard";
+import PassportNftOwnership from "@/components/PassportNftOwnership";
 import PassportNftPreview from "@/components/PassportNftPreview";
 import PublicPassportHero from "@/components/PublicPassportHero";
 import RecentTransactions from "@/components/RecentTransactions";
@@ -14,6 +15,8 @@ import type {
   Passport,
   PassportNftEligibility,
   PassportNftMetadata,
+  PassportNftOwnership as PassportNftOwnershipType,
+  PassportNftTokenUri,
 } from "@/lib/types";
 
 type PublicPassportPageProps = {
@@ -53,28 +56,47 @@ async function getPublicPassport(wallet: string) {
     const deploymentsData =
       (await deploymentsResponse.json()) as DeploymentsResponse;
 
-    const [metadataResponse, eligibilityResponse] = await Promise.all([
+    const [metadataResponse, tokenUriResponse, eligibilityResponse] = await Promise.all([
       fetch(serverApiUrl(`/api/v1/passport/${encodeURIComponent(wallet)}/metadata`), {
         cache: "no-store",
       }),
+      fetch(
+        serverApiUrl(`/api/v1/passport/${encodeURIComponent(wallet)}/token-uri`),
+        { cache: "no-store" }
+      ),
       fetch(
         serverApiUrl(`/api/v1/passport/${encodeURIComponent(wallet)}/eligibility`),
         { cache: "no-store" }
       ),
     ]);
 
+    const ownershipResponse = await fetch(
+      serverApiUrl(
+        `/api/v1/passport-nft/${encodeURIComponent(wallet)}/ownership`
+      ),
+      { cache: "no-store" }
+    );
+
     const metadata = metadataResponse.ok
       ? ((await metadataResponse.json()) as PassportNftMetadata)
       : null;
+    const tokenUri = tokenUriResponse.ok
+      ? ((await tokenUriResponse.json()) as PassportNftTokenUri)
+      : null;
     const eligibility = eligibilityResponse.ok
       ? ((await eligibilityResponse.json()) as PassportNftEligibility)
+      : null;
+    const ownership = ownershipResponse.ok
+      ? ((await ownershipResponse.json()) as PassportNftOwnershipType)
       : null;
 
     return {
       passport,
       deployments: deploymentsData.deployments || [],
       metadata,
+      tokenUri,
       eligibility,
+      ownership,
     };
   } catch (error) {
     console.error("Failed to load public passport:", error);
@@ -105,7 +127,7 @@ export default async function PublicPassportPage({
     );
   }
 
-  const { passport, deployments, metadata, eligibility } = publicPassport;
+  const { passport, deployments, metadata, tokenUri, eligibility, ownership } = publicPassport;
   const achievements = passport.achievements ?? [];
   const unlockedAchievements = achievements.filter(
     (achievement) => achievement.unlocked
@@ -123,6 +145,21 @@ export default async function PublicPassportPage({
           <PassportNftPreview
             metadata={metadata}
             eligibility={eligibility}
+            compact
+          />
+          {tokenUri && (
+            <div className="rounded-2xl border border-green-900 bg-green-950/20 p-5">
+              <p className="text-sm font-medium text-green-300">
+                Metadata Ready
+              </p>
+              <p className="mt-2 break-all text-xs text-gray-400">
+                Token URI prepared for future minting.
+              </p>
+            </div>
+          )}
+          <PassportNftOwnership
+            wallet={passport.wallet}
+            initialOwnership={ownership}
             compact
           />
         </section>

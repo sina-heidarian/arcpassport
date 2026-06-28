@@ -21,6 +21,10 @@ curl http://localhost:8000/api/v1/passport/<wallet>
 curl http://localhost:8000/api/v1/leaderboard
 curl http://localhost:8000/api/v1/stats
 curl http://localhost:8000/api/v1/circle/status
+curl http://localhost:8000/api/v1/passport-nft/status
+curl http://localhost:8000/api/v1/passport-nft/contract-info
+curl http://localhost:8000/api/v1/passport-nft/<wallet>/ownership
+curl http://localhost:8000/api/v1/passport/<wallet>/token-uri
 ```
 
 Legacy unversioned API paths are temporarily available as compatibility aliases.
@@ -48,6 +52,10 @@ debugging is needed; Authorization is still redacted.
 ```bash
 curl http://localhost:8000/api/v1/circle/status
 ```
+
+Passport NFT smoke checks are read-only. Do not add
+`POST /api/v1/passport-nft/<wallet>/mint` to automated smoke tests because it
+can send a real Arc Testnet transaction for eligible unminted wallets.
 
 ## Frontend Checks
 

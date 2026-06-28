@@ -10,6 +10,7 @@ import CircleContractsCard from "@/components/CircleContractsCard";
 import CircleWalletsCard from "@/components/CircleWalletsCard";
 import Navbar from "@/components/Navbar";
 import PassportCard from "@/components/PassportCard";
+import PassportNftOwnership from "@/components/PassportNftOwnership";
 import { usePassportContext } from "@/components/PassportProvider";
 import QuestProgress from "@/components/QuestProgress";
 import PublicPassportShare from "@/components/PublicPassportShare";
@@ -66,6 +67,7 @@ export default function DashboardPage() {
               unlockedAchievements={unlockedAchievements}
               totalAchievements={achievements.length}
             />
+            <PassportNftOwnership wallet={passport.wallet} compact />
             <BuilderScoreBreakdown breakdown={passport.xp_breakdown} />
             <CircleWalletsCard compact />
             <CircleContractsCard compact />

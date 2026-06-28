@@ -25,7 +25,7 @@ MVP in active development.
 - Circle Wallets listing
 - Circle Contracts listing
 - Import Circle contracts into ArcPassport
-- Builder Passport NFT mint integration
+- ArcPassportSBT contract registration and mint integration
 - Faucet helper
 - Docker setup
 - Backend and frontend smoke tests
@@ -72,6 +72,11 @@ Examples:
 - `GET /api/v1/passport/{wallet}`
 - `GET /api/v1/passport/{wallet}/metadata`
 - `GET /api/v1/passport/{wallet}/eligibility`
+- `GET /api/v1/passport/{wallet}/token-uri`
+- `GET /api/v1/passport-nft/status`
+- `GET /api/v1/passport-nft/contract-info`
+- `GET /api/v1/passport-nft/{wallet}/ownership`
+- `POST /api/v1/passport-nft/{wallet}/mint`
 - `GET /api/v1/quests/{wallet}`
 - `GET /api/v1/leaderboard`
 - `GET /api/v1/stats`
@@ -87,33 +92,28 @@ Health endpoints:
 
 ## Builder Passport NFT
 
-ArcPassport integrates with the deployed ArcPassportSBT contract for eligible
-wallet minting. The backend provides metadata and eligibility checks; the
-frontend submits the mint transaction from the connected wallet. Circle is not
-used for minting.
+ArcPassport registers the deployed ArcPassportSBT contract on Arc Testnet and
+displays its status in the app. The backend provides metadata, eligibility,
+ownership checks, and admin-wallet minting. Circle is not used for minting, and
+private keys must never be exposed to the frontend.
 
-The deployed ArcPassportSBT contract is read by the frontend from:
+The deployed ArcPassportSBT contract is configured with:
 
 ```env
+ARCPASSPORT_SBT_ADDRESS=0x68b28900F0e3cD760F0e34084CB7736E18a7931c
 NEXT_PUBLIC_ARCPASSPORT_SBT_ADDRESS=0x68b28900F0e3cD760F0e34084CB7736E18a7931c
 ```
 
-Mint flow:
+Current app behavior:
 
-1. User connects a wallet on Arc Testnet.
-2. Frontend checks whether the wallet already owns a passport.
-3. Frontend checks backend eligibility.
-4. Eligible users click `Mint Builder Passport`.
-5. Wallet confirms the transaction.
-6. App waits for confirmation, shows the transaction hash, and refreshes
-   passport, achievements, and quest progress.
+1. Backend checks wallet eligibility.
+2. Backend checks whether the wallet already owns an ArcPassportSBT.
+3. Backend generates the base64 metadata token URI.
+4. Backend signs and submits the mint transaction with `DEPLOYER_PRIVATE_KEY`.
+5. Frontend shows waiting, success, transaction hash, and ArcScan link.
 
-Wallet requirements:
-
-- Wallet must be connected.
-- Wallet must be on Arc Testnet.
-- Wallet must have enough testnet gas for the mint transaction.
-- Wallet must not already own an ArcPassportSBT.
+The mint endpoint exists, but automated smoke tests intentionally avoid calling
+it because it can submit a real Arc Testnet transaction for an eligible wallet.
 
 ## Smart Contracts
 
@@ -140,6 +140,9 @@ DATABASE_URL=postgresql://arc:arcpass@db:5432/arcpassport
 CORS_ORIGINS=http://localhost:3000,http://localhost:3001
 CIRCLE_API_KEY=
 CIRCLE_BASE_URL=https://api.circle.com
+ARCPASSPORT_SBT_ADDRESS=0x68b28900F0e3cD760F0e34084CB7736E18a7931c
+ARC_TESTNET_RPC_URL=
+DEPLOYER_PRIVATE_KEY=
 ```
 
 Frontend variables:
