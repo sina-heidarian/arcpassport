@@ -75,7 +75,11 @@ export default function QuestsPage() {
             <SummaryItem label="Completed" value={summary.completed} />
             <SummaryItem label="In Progress" value={summary.in_progress} />
             <SummaryItem label="Locked" value={summary.locked} />
-            <SummaryItem label="Completed XP" value={summary.total_xp_completed} />
+            <SummaryItem
+              label="Quest XP Claimed"
+              value={summary.total_xp_completed}
+              highlight={summary.total_xp_completed > 0}
+            />
           </section>
         )}
 
@@ -113,10 +117,26 @@ export default function QuestsPage() {
   );
 }
 
-function SummaryItem({ label, value }: { label: string; value: string | number }) {
+function SummaryItem({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: string | number;
+  highlight?: boolean;
+}) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-      <p className="text-xs text-gray-500">{label}</p>
+    <div
+      className={`rounded-xl border p-4 ${
+        highlight
+          ? "border-green-800 bg-green-950/30"
+          : "border-zinc-800 bg-zinc-900"
+      }`}
+    >
+      <p className={highlight ? "text-xs text-green-300" : "text-xs text-gray-500"}>
+        {label}
+      </p>
       <p className="mt-1 text-2xl font-bold">{value}</p>
     </div>
   );

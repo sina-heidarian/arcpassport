@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+import logging
 
 from sqlalchemy.orm import Session
 
@@ -6,6 +7,8 @@ from app.models import Passport
 from app.services.achievements import build_achievements
 from app.services.arcscan import build_wallet_stats
 from app.services.deployments import get_deployment_count
+
+logger = logging.getLogger(__name__)
 
 
 def get_or_create_passport(db: Session, wallet: str):
@@ -202,8 +205,10 @@ def prepare_passport_mint(db: Session, wallet: str):
 def daily_checkin(db: Session, wallet: str):
     passport = get_or_create_passport(db, wallet)
     today = date.today()
+    logger.info("Daily check-in requested wallet=%s", passport.wallet)
 
     if passport.last_checkin_date == today:
+        logger.info("Daily check-in skipped wallet=%s reason=already_checked_in", passport.wallet)
         return {
             "success": False,
             "message": "Already checked in today",
@@ -228,6 +233,12 @@ def daily_checkin(db: Session, wallet: str):
 
     db.commit()
     db.refresh(passport)
+    logger.info(
+        "Daily check-in completed wallet=%s reward_xp=%s streak=%s",
+        passport.wallet,
+        reward_xp,
+        passport.streak,
+    )
 
     return {
         "success": True,

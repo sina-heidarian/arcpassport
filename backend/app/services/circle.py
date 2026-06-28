@@ -405,6 +405,11 @@ def list_circle_contracts():
 
 def import_circle_contract(db: Session, wallet: str, contract_id: str):
     """Import an existing Circle contract into local deployment tracking."""
+    logger.info(
+        "Circle contract import requested wallet=%s contract_id=%s",
+        wallet.lower(),
+        contract_id,
+    )
     contracts = list_circle_contracts()["contracts"]
     contract = next(
         (
@@ -416,11 +421,16 @@ def import_circle_contract(db: Session, wallet: str, contract_id: str):
     )
 
     if not contract:
+        logger.warning("Circle contract import failed contract_id=%s reason=not_found", contract_id)
         raise CircleApiError("Circle contract not found", status_code=404)
 
     contract_address = contract.get("contractAddress")
 
     if not contract_address:
+        logger.warning(
+            "Circle contract import failed contract_id=%s reason=missing_contract_address",
+            contract_id,
+        )
         raise CircleApiError(
             "Circle contract does not include a contract address",
             status_code=400,
@@ -440,6 +450,13 @@ def import_circle_contract(db: Session, wallet: str, contract_id: str):
         },
     )
     imported = saved.get("reward_xp", 0) > 0
+    logger.info(
+        "Circle contract import finished wallet=%s contract_id=%s imported=%s contract_address=%s",
+        wallet.lower(),
+        contract_id,
+        imported,
+        contract_address,
+    )
 
     return {
         "success": True,

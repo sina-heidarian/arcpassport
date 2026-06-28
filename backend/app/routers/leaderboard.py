@@ -9,6 +9,7 @@ router = APIRouter(tags=["Leaderboard"])
 
 @router.get(
     "/leaderboard",
+    response_model=dict,
     summary="Get leaderboard",
     description="Return builders ranked by total XP, deployments, and streak.",
 )

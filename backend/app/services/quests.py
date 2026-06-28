@@ -1,4 +1,5 @@
 from datetime import date
+import logging
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -8,6 +9,8 @@ from app.models import Quest, QuestCompletion
 from app.services.arcscan import build_wallet_stats
 from app.services.deployments import get_deployment_count
 from app.services.passport import get_or_create_passport
+
+logger = logging.getLogger(__name__)
 
 QUEST_CATEGORIES = {"Onchain", "Deploy", "Social", "Learning", "Builder"}
 QUEST_REQUIREMENT_TYPES = {
@@ -182,6 +185,7 @@ def build_wallet_quests(db: Session, wallet: str):
 
 def claim_quest(db: Session, wallet: str, quest_id: int):
     wallet = wallet.lower()
+    logger.info("Quest claim requested wallet=%s quest_id=%s", wallet, quest_id)
     quest = db.query(Quest).filter(Quest.id == quest_id).first()
 
     if not quest:
@@ -190,6 +194,7 @@ def claim_quest(db: Session, wallet: str, quest_id: int):
     existing_completion = get_completion(db, wallet, quest_id)
 
     if existing_completion:
+        logger.info("Quest already claimed wallet=%s quest_id=%s", wallet, quest_id)
         raise QuestAlreadyCompletedError("Quest already claimed")
 
     passport = get_or_create_passport(db, wallet)
@@ -203,6 +208,13 @@ def claim_quest(db: Session, wallet: str, quest_id: int):
     )
 
     if progress < quest.requirement_value:
+        logger.info(
+            "Quest requirement not met wallet=%s quest_id=%s progress=%s target=%s",
+            wallet,
+            quest_id,
+            progress,
+            quest.requirement_value,
+        )
         raise QuestRequirementNotMetError("Quest requirement not met")
 
     completion = QuestCompletion(
@@ -214,6 +226,12 @@ def claim_quest(db: Session, wallet: str, quest_id: int):
     db.add(completion)
     db.commit()
     db.refresh(completion)
+    logger.info(
+        "Quest XP claimed wallet=%s quest_id=%s xp_reward=%s",
+        wallet,
+        quest.id,
+        completion.xp_reward,
+    )
 
     return {
         "success": True,

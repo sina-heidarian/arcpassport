@@ -5,10 +5,16 @@ import BuilderProfile from "@/components/BuilderProfile";
 import BuilderScoreBreakdown from "@/components/BuilderScoreBreakdown";
 import Navbar from "@/components/Navbar";
 import PassportCard from "@/components/PassportCard";
+import PassportNftPreview from "@/components/PassportNftPreview";
 import PublicPassportHero from "@/components/PublicPassportHero";
 import RecentTransactions from "@/components/RecentTransactions";
 import { serverApiUrl } from "@/lib/api";
-import type { Deployment, Passport } from "@/lib/types";
+import type {
+  Deployment,
+  Passport,
+  PassportNftEligibility,
+  PassportNftMetadata,
+} from "@/lib/types";
 
 type PublicPassportPageProps = {
   params: Promise<{
@@ -47,9 +53,28 @@ async function getPublicPassport(wallet: string) {
     const deploymentsData =
       (await deploymentsResponse.json()) as DeploymentsResponse;
 
+    const [metadataResponse, eligibilityResponse] = await Promise.all([
+      fetch(serverApiUrl(`/api/v1/passport/${encodeURIComponent(wallet)}/metadata`), {
+        cache: "no-store",
+      }),
+      fetch(
+        serverApiUrl(`/api/v1/passport/${encodeURIComponent(wallet)}/eligibility`),
+        { cache: "no-store" }
+      ),
+    ]);
+
+    const metadata = metadataResponse.ok
+      ? ((await metadataResponse.json()) as PassportNftMetadata)
+      : null;
+    const eligibility = eligibilityResponse.ok
+      ? ((await eligibilityResponse.json()) as PassportNftEligibility)
+      : null;
+
     return {
       passport,
       deployments: deploymentsData.deployments || [],
+      metadata,
+      eligibility,
     };
   } catch (error) {
     console.error("Failed to load public passport:", error);
@@ -80,7 +105,7 @@ export default async function PublicPassportPage({
     );
   }
 
-  const { passport, deployments } = publicPassport;
+  const { passport, deployments, metadata, eligibility } = publicPassport;
   const achievements = passport.achievements ?? [];
   const unlockedAchievements = achievements.filter(
     (achievement) => achievement.unlocked
@@ -92,6 +117,15 @@ export default async function PublicPassportPage({
         <Navbar active="home" />
 
         <PublicPassportHero passport={passport} />
+
+        <section className="space-y-4">
+          <h3 className="text-2xl font-bold">Future Builder Passport</h3>
+          <PassportNftPreview
+            metadata={metadata}
+            eligibility={eligibility}
+            compact
+          />
+        </section>
 
         <PassportCard
           passport={passport}

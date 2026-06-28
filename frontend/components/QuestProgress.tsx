@@ -45,7 +45,7 @@ export default function QuestProgress({ wallet }: QuestProgressProps) {
           <SummaryItem label="Completed" value={summary.completed} />
           <SummaryItem label="In Progress" value={summary.in_progress} />
           <SummaryItem label="Locked" value={summary.locked} />
-          <SummaryItem label="Quest XP" value={summary.total_xp_completed} />
+          <SummaryItem label="Quest XP Claimed" value={summary.total_xp_completed} />
         </div>
       )}
 

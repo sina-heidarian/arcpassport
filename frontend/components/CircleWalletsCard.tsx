@@ -41,7 +41,7 @@ export default function CircleWalletsCard({
     } catch (loadError) {
       console.error("Failed to load Circle wallets:", loadError);
       setWallets([]);
-      setError("Unable to load Circle wallets.");
+      setError("Unable to load Circle wallets safely.");
     } finally {
       setLoading(false);
     }
@@ -67,7 +67,7 @@ export default function CircleWalletsCard({
         }
 
         setWallets([]);
-        setError("Unable to load Circle wallets.");
+        setError("Unable to load Circle wallets safely.");
       }
     }
 
@@ -102,6 +102,12 @@ export default function CircleWalletsCard({
       {error && (
         <p className="rounded-xl border border-red-900/60 bg-red-950/40 px-4 py-3 text-sm text-red-200">
           {error}
+        </p>
+      )}
+
+      {loading && (
+        <p className="rounded-xl border border-zinc-800 bg-black px-4 py-3 text-sm text-gray-400">
+          Loading Circle wallets...
         </p>
       )}
 

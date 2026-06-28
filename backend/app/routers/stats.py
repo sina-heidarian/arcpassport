@@ -9,6 +9,7 @@ router = APIRouter(tags=["Stats"])
 
 @router.get(
     "/stats",
+    response_model=dict,
     summary="Get platform stats",
     description="Return high-level ArcPassport platform overview metrics.",
 )

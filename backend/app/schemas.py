@@ -11,6 +11,37 @@ class HealthResponse(BaseModel):
     status: str
 
 
+class HealthReadyResponse(BaseModel):
+    database: bool
+    circle: bool
+    ready: bool
+
+
+class PassportNftAttribute(BaseModel):
+    trait_type: str
+    value: str | int
+
+
+class PassportNftMetadataResponse(BaseModel):
+    name: str
+    description: str
+    image: str
+    attributes: list[PassportNftAttribute]
+
+
+class PassportNftRequirement(BaseModel):
+    label: str
+    met: bool
+    current: int
+    target: int
+
+
+class PassportNftEligibilityResponse(BaseModel):
+    eligible: bool
+    reason: str
+    requirements: list[PassportNftRequirement]
+
+
 class CircleStatusResponse(BaseModel):
     configured: bool
     base_url: str

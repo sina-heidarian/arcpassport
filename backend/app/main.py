@@ -1,127 +1,33 @@
 import logging
-from time import sleep
 
-from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from sqlalchemy import text
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
-from app.database import Base, engine
+from app.error_handlers import register_error_handlers
 from app.logging_config import configure_logging
 from app.routers import (
     circle,
     deployments,
+    health,
     leaderboard,
     passport,
     quests,
     stats,
 )
-from app.services.quests import seed_default_quests
-from app.schemas import HealthResponse, RootResponse
+from app.startup import initialize_backend
+
+API_V1_PREFIX = "/api/v1"
 
 configure_logging(settings.log_level)
 
 logger = logging.getLogger(__name__)
 
-
-def wait_for_database(max_retries=30, delay_seconds=1):
-    """Wait for PostgreSQL to accept connections before table setup."""
-    last_error = None
-
-    for attempt in range(1, max_retries + 1):
-        try:
-            with engine.connect():
-                logger.info("Database connection established")
-                return
-        except Exception as error:
-            last_error = error
-            logger.warning(
-                "Database not ready (%s/%s): %s",
-                attempt,
-                max_retries,
-                error,
-            )
-            sleep(delay_seconds)
-
-    raise RuntimeError(
-        "Database did not become available after "
-        f"{max_retries} retries. Last error: {last_error}"
-    )
-
-
-wait_for_database()
-Base.metadata.create_all(bind=engine)
-logger.info("Database metadata checked")
-
-
-def run_local_migrations():
-    # create_all creates tables for fresh local databases, but it does not
-    # alter existing tables. Keep these additive, non-destructive fixes here
-    # for local Docker development until Alembic is introduced for production
-    # migrations.
-    migrations = [
-        "ALTER TABLE passports ADD COLUMN IF NOT EXISTS display_name VARCHAR(40)",
-        "ALTER TABLE passports ADD COLUMN IF NOT EXISTS bio VARCHAR(160)",
-        "ALTER TABLE passports ADD COLUMN IF NOT EXISTS x_handle VARCHAR(30)",
-        "ALTER TABLE passports ADD COLUMN IF NOT EXISTS website VARCHAR(120)",
-        """
-        CREATE TABLE IF NOT EXISTS quests (
-            id SERIAL PRIMARY KEY,
-            title VARCHAR NOT NULL,
-            description VARCHAR NOT NULL,
-            category VARCHAR NOT NULL,
-            xp_reward INTEGER NOT NULL,
-            requirement_type VARCHAR NOT NULL UNIQUE,
-            requirement_value INTEGER NOT NULL,
-            is_repeatable BOOLEAN DEFAULT FALSE
-        )
-        """,
-        "CREATE INDEX IF NOT EXISTS ix_quests_id ON quests (id)",
-        """
-        CREATE INDEX IF NOT EXISTS ix_quests_requirement_type
-        ON quests (requirement_type)
-        """,
-        """
-        CREATE TABLE IF NOT EXISTS quest_completions (
-            id SERIAL PRIMARY KEY,
-            wallet VARCHAR NOT NULL,
-            quest_id INTEGER NOT NULL,
-            xp_reward INTEGER NOT NULL,
-            completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            CONSTRAINT uq_quest_completion_wallet_quest UNIQUE (wallet, quest_id)
-        )
-        """,
-        """
-        CREATE UNIQUE INDEX IF NOT EXISTS uq_quest_completion_wallet_quest
-        ON quest_completions (wallet, quest_id)
-        """,
-        "CREATE INDEX IF NOT EXISTS ix_quest_completions_id ON quest_completions (id)",
-        """
-        CREATE INDEX IF NOT EXISTS ix_quest_completions_wallet
-        ON quest_completions (wallet)
-        """,
-        """
-        CREATE INDEX IF NOT EXISTS ix_quest_completions_quest_id
-        ON quest_completions (quest_id)
-        """,
-    ]
-
-    with engine.begin() as connection:
-        for migration in migrations:
-            connection.execute(text(migration))
-    logger.info("Local additive migrations checked")
-
-
-run_local_migrations()
-seed_default_quests()
-logger.info("Default quests checked")
+initialize_backend()
 
 app = FastAPI(
     title="ArcPassport API",
-    description="Backend API for ArcPassport builder identity, XP, quests, deployments, and integration blueprints.",
+    description="Backend API for ArcPassport builder identity, XP, quests, deployments, and Circle integrations.",
     version="0.1.0",
 )
 
@@ -133,86 +39,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    logger.warning(
-        "HTTP error path=%s status=%s detail=%s",
-        request.url.path,
-        exc.status_code,
-        exc.detail,
-    )
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "detail": exc.detail,
-            "error": {
-                "message": exc.detail,
-                "status_code": exc.status_code,
-            },
-        },
-    )
+register_error_handlers(app)
 
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(
-    request: Request,
-    exc: RequestValidationError,
-):
-    logger.warning("Validation error path=%s errors=%s", request.url.path, exc.errors())
-    return JSONResponse(
-        status_code=422,
-        content={
-            "detail": exc.errors(),
-            "error": {
-                "message": "Request validation failed",
-                "status_code": 422,
-            },
-        },
-    )
+def include_api_router(router):
+    app.include_router(router, prefix=API_V1_PREFIX)
+    app.include_router(router, include_in_schema=False)
 
 
-@app.exception_handler(Exception)
-async def unexpected_exception_handler(request: Request, exc: Exception):
-    logger.exception("Unexpected error path=%s", request.url.path)
-    return JSONResponse(
-        status_code=500,
-        content={
-            "detail": "Internal server error",
-            "error": {
-                "message": "Internal server error",
-                "status_code": 500,
-            },
-        },
-    )
-
-
-app.include_router(passport.router)
-app.include_router(leaderboard.router)
-app.include_router(stats.router)
-app.include_router(deployments.router)
-app.include_router(circle.router)
-app.include_router(quests.router)
-
+include_api_router(passport.router)
+include_api_router(leaderboard.router)
+include_api_router(stats.router)
+include_api_router(deployments.router)
+include_api_router(circle.router)
+include_api_router(quests.router)
+app.include_router(health.router)
 
 logger.info("ArcPassport API startup complete")
-
-
-@app.get(
-    "/",
-    response_model=RootResponse,
-    summary="API root",
-    description="Health-neutral root response.",
-)
-def root():
-    return {"message": "ArcPassport API running"}
-
-
-@app.get(
-    "/health",
-    response_model=HealthResponse,
-    summary="API health check",
-    description="Container health endpoint.",
-)
-def health():
-    return {"status": "ok"}

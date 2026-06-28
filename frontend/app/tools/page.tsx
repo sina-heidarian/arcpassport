@@ -9,6 +9,7 @@ import DeployCard from "@/components/DeployCard";
 import MintPassport from "@/components/MintPassport";
 import Navbar from "@/components/Navbar";
 import { usePassportContext } from "@/components/PassportProvider";
+import PassportReadinessCard from "@/components/PassportReadinessCard";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { apiPost } from "@/lib/api";
 import { counterAbi, counterBytecode } from "@/lib/counterContract";
@@ -211,6 +212,8 @@ export default function ToolsPage() {
           cta="Open Quests"
         />
 
+        <PassportReadinessCard wallet={passport?.wallet ?? wallet} />
+
         {!isConnected && (
           <div className="bg-zinc-900 rounded-2xl p-6">
             <h2 className="text-2xl font-bold">Connect your wallet</h2>
@@ -290,8 +293,21 @@ export default function ToolsPage() {
         </section>
 
         <div className="space-y-8">
-          <CircleContractsCard />
-          <CircleWalletsCard />
+          <section className="space-y-4">
+            <div>
+              <h3 className="text-2xl font-bold">
+                Circle Builder Infrastructure
+              </h3>
+              <p className="text-sm text-gray-400 mt-1">
+                Real read-only Circle wallets and contracts connected to your
+                ArcPassport builder progress.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+              <CircleContractsCard />
+              <CircleWalletsCard />
+            </div>
+          </section>
 
           {toolSections.map((section) => (
             <section key={section.title} className="space-y-4">

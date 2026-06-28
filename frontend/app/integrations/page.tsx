@@ -21,7 +21,7 @@ const statusChecks: Array<{
 }> = [
   {
     key: "circle",
-    title: "Circle API Config",
+    title: "Circle Auth Status",
     path: "/circle/status",
   },
   {
@@ -117,7 +117,14 @@ export default function IntegrationsPage() {
           )}
         </section>
 
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <section className="space-y-4">
+          <div>
+            <h3 className="text-2xl font-bold">Circle Auth Status</h3>
+            <p className="text-sm text-gray-400 mt-1">
+              Backend-only Circle configuration and safe read checks.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {statusChecks.map((check) => (
             <JsonCard
               key={check.key}
@@ -125,10 +132,13 @@ export default function IntegrationsPage() {
               result={statusResults[check.key] ?? "Loading..."}
             />
           ))}
+          </div>
         </section>
 
-        <CircleWalletsCard />
-        <CircleContractsCard />
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <CircleWalletsCard />
+          <CircleContractsCard />
+        </section>
 
         <section className="space-y-4">
           <div>

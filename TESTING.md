@@ -1,5 +1,7 @@
 # ArcPassport Testing Checklist
 
+For full manual app QA, use [QA_CHECKLIST.md](QA_CHECKLIST.md).
+
 ## Docker
 
 ```bash
@@ -13,12 +15,15 @@ With Docker running:
 
 ```bash
 curl http://localhost:8000/
-curl http://localhost:8000/passport/<wallet>
-curl http://localhost:8000/leaderboard
-curl http://localhost:8000/stats
-curl http://localhost:8000/circle/status
 curl http://localhost:8000/health
+curl http://localhost:8000/health/ready
+curl http://localhost:8000/api/v1/passport/<wallet>
+curl http://localhost:8000/api/v1/leaderboard
+curl http://localhost:8000/api/v1/stats
+curl http://localhost:8000/api/v1/circle/status
 ```
+
+Legacy unversioned API paths are temporarily available as compatibility aliases.
 
 Or run the backend smoke test script from another PowerShell terminal:
 
@@ -41,7 +46,7 @@ by default. Set backend-only `CIRCLE_DEBUG=true` only when temporary auth
 debugging is needed; Authorization is still redacted.
 
 ```bash
-curl http://localhost:8000/circle/status
+curl http://localhost:8000/api/v1/circle/status
 ```
 
 ## Frontend Checks

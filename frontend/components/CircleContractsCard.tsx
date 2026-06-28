@@ -55,7 +55,7 @@ export default function CircleContractsCard({
     } catch (loadError) {
       console.error("Failed to load Circle contracts:", loadError);
       setContracts([]);
-      setError("Circle Contracts listing is not available yet.");
+      setError("Unable to load Circle contracts safely.");
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ export default function CircleContractsCard({
         }
 
         setContracts([]);
-        setError("Circle Contracts listing is not available yet.");
+        setError("Unable to load Circle contracts safely.");
       }
     }
 
@@ -140,6 +140,12 @@ export default function CircleContractsCard({
       {error && (
         <p className="rounded-xl border border-yellow-900/60 bg-yellow-950/30 px-4 py-3 text-sm text-yellow-200">
           {error}
+        </p>
+      )}
+
+      {loading && (
+        <p className="rounded-xl border border-zinc-800 bg-black px-4 py-3 text-sm text-gray-400">
+          Loading Circle contracts...
         </p>
       )}
 
@@ -236,11 +242,14 @@ function CircleContractItem({
         className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
       >
         {imported
-          ? "Imported to ArcPassport"
+          ? "Imported"
           : importing
             ? "Importing..."
             : "Import to ArcPassport"}
       </button>
+      {imported && (
+        <p className="text-xs text-green-300">Imported to ArcPassport</p>
+      )}
     </div>
   );
 }

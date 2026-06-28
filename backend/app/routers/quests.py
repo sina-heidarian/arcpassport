@@ -15,6 +15,7 @@ router = APIRouter(tags=["Quests"])
 
 @router.get(
     "/quests",
+    response_model=dict,
     summary="List quest definitions",
     description="Return all available ArcPassport quest definitions.",
 )
@@ -24,6 +25,7 @@ def get_quests(db: Session = Depends(get_db)):
 
 @router.get(
     "/quests/{wallet}",
+    response_model=dict,
     summary="Get wallet quest progress",
     description="Return dynamic quest progress and claim state for a wallet.",
 )
@@ -33,6 +35,7 @@ def get_wallet_quests(wallet: str, db: Session = Depends(get_db)):
 
 @router.post(
     "/quests/{wallet}/claim/{quest_id}",
+    response_model=dict,
     summary="Claim quest XP",
     description="Claim XP for a completed quest once per wallet.",
 )

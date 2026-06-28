@@ -15,42 +15,68 @@ export default function BuilderContracts({ deployments }: BuilderContractsProps)
 
       <div className="space-y-3">
         {deployments.map((deployment, index) => (
-          <div
+          <ContractRow
             key={deployment.tx_hash}
-            className="bg-black border border-zinc-800 rounded-xl p-4 space-y-2"
-          >
-            <p className="text-gray-400">#{index + 1}</p>
-
-            <p className="break-all">
-              Contract:{" "}
-              <a
-                href={`https://testnet.arcscan.app/address/${deployment.contract_address}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-300"
-              >
-                {deployment.contract_address}
-              </a>
-            </p>
-
-            <p className="break-all">
-              Deploy Tx:{" "}
-              <a
-                href={`https://testnet.arcscan.app/tx/${deployment.tx_hash}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-300"
-              >
-                {deployment.tx_hash}
-              </a>
-            </p>
-
-            <p className="text-gray-400">
-              Created: {new Date(deployment.created_at).toLocaleString()}
-            </p>
-          </div>
+            deployment={deployment}
+            index={index}
+          />
         ))}
       </div>
+    </div>
+  );
+}
+
+function ContractRow({
+  deployment,
+  index,
+}: {
+  deployment: Deployment;
+  index: number;
+}) {
+  const isCircleImport = deployment.tx_hash.startsWith("circle-contract:");
+
+  return (
+    <div className="bg-black border border-zinc-800 rounded-xl p-4 space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-gray-400">#{index + 1}</p>
+        {isCircleImport && (
+          <span className="rounded-full border border-blue-800 bg-blue-950/40 px-2 py-0.5 text-xs text-blue-300">
+            Imported Circle Contract
+          </span>
+        )}
+      </div>
+
+      <p className="break-all">
+        Contract:{" "}
+        <a
+          href={`https://testnet.arcscan.app/address/${deployment.contract_address}`}
+          target="_blank"
+          rel="noreferrer"
+          className="text-blue-300"
+        >
+          {deployment.contract_address}
+        </a>
+      </p>
+
+      <p className="break-all">
+        {isCircleImport ? "Import Source" : "Deploy Tx"}:{" "}
+        {isCircleImport ? (
+          <span className="text-gray-300">{deployment.tx_hash}</span>
+        ) : (
+          <a
+            href={`https://testnet.arcscan.app/tx/${deployment.tx_hash}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-blue-300"
+          >
+            {deployment.tx_hash}
+          </a>
+        )}
+      </p>
+
+      <p className="text-gray-400">
+        Created: {new Date(deployment.created_at).toLocaleString()}
+      </p>
     </div>
   );
 }

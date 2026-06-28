@@ -43,6 +43,7 @@ services:
     environment:
       INTERNAL_API_URL: http://backend:8000
       NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_ARCPASSPORT_SBT_ADDRESS: 0x68b28900F0e3cD760F0e34084CB7736E18a7931c
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
       interval: 10s

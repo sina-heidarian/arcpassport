@@ -129,3 +129,28 @@ export type QuestClaimResponse = {
   xp_reward: number;
   completed_at: string;
 };
+
+export type PassportNftAttribute = {
+  trait_type: string;
+  value: string | number;
+};
+
+export type PassportNftMetadata = {
+  name: string;
+  description: string;
+  image: string;
+  attributes: PassportNftAttribute[];
+};
+
+export type PassportNftRequirement = {
+  label: string;
+  met: boolean;
+  current: number;
+  target: number;
+};
+
+export type PassportNftEligibility = {
+  eligible: boolean;
+  reason: string;
+  requirements: PassportNftRequirement[];
+};

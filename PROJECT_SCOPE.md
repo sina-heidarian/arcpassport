@@ -14,14 +14,18 @@ This file keeps the project focused while ArcPassport stabilizes. Do not delete 
 - Public Passport
 - Faucet helper
 - Builder Workspace / Tools
+- Circle API auth
+- Circle Wallets listing
+- Circle Contracts listing
+- Import Circle contracts into ArcPassport
 - Basic Passport NFT preparation, since it is already implemented as a mock/prep endpoint
 
 ## V2 Features
 
 - Builder profile customization
 - Real NFT minting
-- Circle Contracts API
-- Circle Wallets API
+- Real Circle Contracts API deploy
+- Real Circle Wallets API creation
 - Gateway
 - CCTP
 - AI Builder
@@ -39,5 +43,5 @@ This file keeps the project focused while ArcPassport stabilizes. Do not delete 
 - Keep local database changes additive and non-destructive.
 - Alembic should be added before production migrations.
 - Circle API keys must stay backend-only and out of frontend code.
-- Circle API integration is planned for V2 and requires a backend-only `CIRCLE_API_KEY`.
+- Read-only Circle API integration requires a backend-only `CIRCLE_API_KEY`.
 - Circle Contracts API deploy is V2; the current `/circle/contracts/deploy` endpoint is mock/preparation only.
