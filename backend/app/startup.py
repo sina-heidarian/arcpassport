@@ -84,6 +84,26 @@ def run_local_migrations():
         CREATE INDEX IF NOT EXISTS ix_quest_completions_quest_id
         ON quest_completions (quest_id)
         """,
+        """
+        CREATE TABLE IF NOT EXISTS sync_statuses (
+            wallet VARCHAR PRIMARY KEY,
+            last_sync_at TIMESTAMP NULL,
+            syncing BOOLEAN DEFAULT FALSE,
+            latest_block INTEGER NULL,
+            network VARCHAR DEFAULT 'Arc Testnet',
+            latest_stats JSON NULL,
+            last_error VARCHAR(240) NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS ix_sync_statuses_wallet ON sync_statuses (wallet)",
+        "ALTER TABLE sync_statuses ADD COLUMN IF NOT EXISTS last_sync_at TIMESTAMP NULL",
+        "ALTER TABLE sync_statuses ADD COLUMN IF NOT EXISTS syncing BOOLEAN DEFAULT FALSE",
+        "ALTER TABLE sync_statuses ADD COLUMN IF NOT EXISTS latest_block INTEGER NULL",
+        "ALTER TABLE sync_statuses ADD COLUMN IF NOT EXISTS network VARCHAR DEFAULT 'Arc Testnet'",
+        "ALTER TABLE sync_statuses ADD COLUMN IF NOT EXISTS latest_stats JSON NULL",
+        "ALTER TABLE sync_statuses ADD COLUMN IF NOT EXISTS last_error VARCHAR(240) NULL",
+        "ALTER TABLE sync_statuses ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
     ]
 
     with engine.begin() as connection:

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
 import {
   PassportNftOwnershipView,
 } from "@/components/PassportNftOwnership";
@@ -10,6 +9,7 @@ import PassportNftPreview, {
   RequirementsChecklist,
 } from "@/components/PassportNftPreview";
 import SbtContractStatus from "@/components/SbtContractStatus";
+import { Button, Card, EmptyState, PageHeader, PageShell } from "@/components/ui";
 import { apiGet, apiPost } from "@/lib/api";
 import type {
   PassportNftEligibility,
@@ -123,41 +123,30 @@ export default function PassportMintPage() {
   );
 
   return (
-    <main className="min-h-screen bg-black p-4 text-white sm:p-8">
-      <div className="mx-auto max-w-5xl space-y-8">
-        <Navbar active="workspace" />
-
-        <section className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-wide text-blue-300">
-            Passport NFT
-          </p>
-          <h2 className="text-3xl font-bold">Builder Passport Preview</h2>
-          <p className="max-w-2xl text-gray-400">
-            Preview the future Soulbound Builder Passport metadata and mint
-            readiness. No NFT is minted from this page yet.
-          </p>
-        </section>
+    <PageShell active="workspace">
+      <PageHeader
+        eyebrow="Passport NFT"
+        title="Builder Passport Preview"
+        description="Preview the Soulbound Builder Passport metadata and mint readiness."
+      />
 
         {!isConnected && (
-          <div className="rounded-2xl bg-zinc-900 p-6">
-            <h2 className="text-2xl font-bold">Connect your wallet</h2>
-            <p className="mt-2 text-gray-400">
-              Connect your wallet to preview Builder Passport NFT eligibility
-              and metadata.
-            </p>
-          </div>
+          <EmptyState
+            title="Connect your wallet"
+            description="Connect your wallet to preview Builder Passport NFT eligibility and metadata."
+          />
         )}
 
         {isConnected && (loading || previewLoading) && (
-          <div className="rounded-2xl bg-zinc-900 p-6 text-gray-400">
+          <Card className="text-gray-400">
             Loading Builder Passport preview...
-          </div>
+          </Card>
         )}
 
         {error && (
-          <div className="rounded-2xl bg-zinc-900 p-6 text-red-300">
+          <Card className="text-red-300">
             {error}
-          </div>
+          </Card>
         )}
 
         <SbtContractStatus />
@@ -170,12 +159,48 @@ export default function PassportMintPage() {
         <PassportNftPreview metadata={metadata} eligibility={eligibility} />
 
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+          <Card>
+            <h3 className="text-xl font-bold">Mint Mode</h3>
+            <div className="mt-4 space-y-3 text-sm">
+              <MintModeRow label="Current mode" value="Backend/Admin Mint" />
+              <MintModeRow label="Transaction sender" value="Deployer wallet" />
+              <MintModeRow
+                label="NFT recipient"
+                value={wallet ?? "Connected wallet"}
+              />
+              <MintModeRow
+                label="User-paid mint"
+                value="Not available in this deployed contract"
+              />
+            </div>
+            <Button
+              type="button"
+              disabled
+              className="mt-5"
+              variant="secondary"
+            >
+              Mint with my wallet
+            </Button>
+            <p className="mt-3 text-sm text-gray-400">
+              This contract version only allows admin minting. User-paid mint
+              can be added in a future contract version.
+            </p>
+          </Card>
+
+          <Card>
             <h3 className="text-xl font-bold">Mint Status</h3>
             <p className="mt-2 text-sm text-gray-400">
               Metadata is prepared for ArcPassportSBT. Eligible connected
               wallets can mint through the backend admin wallet.
             </p>
+            <div className="mt-4 rounded-xl border border-yellow-900 bg-yellow-950/20 p-4">
+              <p className="text-sm font-semibold text-yellow-200">
+                Current mint mode: Backend/Admin mint.
+              </p>
+              <p className="mt-1 text-sm text-yellow-100/80">
+                User-paid mint is not available in this deployed contract.
+              </p>
+            </div>
             <div className="mt-4 rounded-xl border border-zinc-800 bg-black p-4">
               <p className="text-sm text-gray-500">Token URI Status</p>
               <p className="mt-1 font-semibold text-green-300">
@@ -183,13 +208,13 @@ export default function PassportMintPage() {
               </p>
               {tokenUri && (
                 <div className="mt-3">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => setShowMetadata((current) => !current)}
-                    className="rounded-xl border border-zinc-700 px-3 py-2 text-sm font-medium text-gray-200 hover:border-zinc-500"
+                    variant="secondary"
                   >
                     {showMetadata ? "Hide Metadata" : "Show Metadata"}
-                  </button>
+                  </Button>
                   {showMetadata && (
                     <p className="mt-3 max-h-24 overflow-auto break-all rounded-xl border border-zinc-800 p-3 text-xs text-gray-500">
                       {tokenUri.token_uri}
@@ -198,7 +223,7 @@ export default function PassportMintPage() {
                 </div>
               )}
             </div>
-            <button
+            <Button
               type="button"
               onClick={mintPassport}
               disabled={!canMint}
@@ -207,7 +232,7 @@ export default function PassportMintPage() {
               {mintStatus === "waiting"
                 ? "Waiting for mint..."
                 : "Mint Builder Passport"}
-            </button>
+            </Button>
 
             {ownership?.owns_passport && (
               <div className="mt-4 rounded-xl border border-green-900 bg-black p-4">
@@ -220,14 +245,14 @@ export default function PassportMintPage() {
                 <p className="mt-2 break-all text-xs text-gray-400">
                   Contract Address: {ownership.contract_address}
                 </p>
-                <a
+                <Button
                   href={ownership.explorer_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-3 inline-flex rounded-xl bg-white px-4 py-2 text-sm font-medium text-black"
+                  className="mt-3"
                 >
                   View Contract on ArcScan
-                </a>
+                </Button>
               </div>
             )}
 
@@ -264,16 +289,16 @@ export default function PassportMintPage() {
                     )}
                   </>
                 )}
-                <a
+                <Button
                   href={mintResult.explorer_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-3 inline-flex rounded-xl bg-white px-4 py-2 text-sm font-medium text-black"
+                  className="mt-3"
                 >
                   {mintResult.already_minted
                     ? "View Contract on ArcScan"
                     : "View transaction on ArcScan"}
-                </a>
+                </Button>
               </div>
             )}
 
@@ -282,27 +307,35 @@ export default function PassportMintPage() {
                 Mint failed. Check backend logs and wallet eligibility.
               </p>
             )}
-          </div>
+          </Card>
 
           {eligibility ? (
             <RequirementsChecklist eligibility={eligibility} />
           ) : (
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+            <Card>
               <h3 className="text-xl font-bold">Eligibility</h3>
               <p className="mt-2 text-sm text-gray-400">
                 Eligibility appears after a wallet is connected.
               </p>
-            </div>
+            </Card>
           )}
         </section>
 
         {passport && (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-5 text-sm text-gray-400">
+          <Card className="text-sm text-gray-400" variant="muted">
             Previewing passport data for{" "}
             <span className="break-all text-gray-200">{passport.wallet}</span>.
-          </div>
+          </Card>
         )}
-      </div>
-    </main>
+    </PageShell>
+  );
+}
+
+function MintModeRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-black p-4">
+      <p className="text-gray-500">{label}</p>
+      <p className="mt-1 break-all font-semibold text-gray-100">{value}</p>
+    </div>
   );
 }

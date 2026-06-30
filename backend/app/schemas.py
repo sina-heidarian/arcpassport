@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -86,6 +87,36 @@ class PassportNftMintResponse(BaseModel):
     explorer_url: str
     already_minted: bool = False
     message: str
+
+
+class SyncResponse(BaseModel):
+    wallet: str
+    synced: bool
+    cached: bool = False
+    transactions: int
+    latest_transactions: list[dict] = []
+    contract_calls: int
+    token_transfers: int
+    balance: float
+    deployments: int
+    imported_deployments: int
+    xp: int
+    reputation: int
+    rank: int
+    deployment_xp: int
+    achievements: list[dict]
+    latest_block: int | None
+    network: str
+    timestamp: datetime | None
+    message: str | None = None
+
+
+class SyncStatusResponse(BaseModel):
+    wallet: str
+    last_sync: datetime | None
+    syncing: bool
+    latest_block: int | None
+    network: str
 
 
 class CircleStatusResponse(BaseModel):

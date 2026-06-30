@@ -7,6 +7,7 @@ import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { PassportProvider } from "@/components/PassportProvider";
+import FloatingWallet from "@/components/FloatingWallet";
 import { config } from "@/lib/wagmi";
 
 const queryClient = new QueryClient();
@@ -22,7 +23,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             borderRadius: "large",
           })}
         >
-          <PassportProvider>{children}</PassportProvider>
+          <PassportProvider>
+            <FloatingWallet />
+            {children}
+          </PassportProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

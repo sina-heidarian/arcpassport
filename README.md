@@ -8,12 +8,29 @@ ArcPassport helps Arc builders connect their wallet, track onchain activity, ear
 
 MVP in active development.
 
+## Demo Flow
+
+Use `DEMO_NOTES.md` as the live demo runbook.
+
+Recommended v1.0 Beta flow:
+
+1. Open `/` and show the ArcPassport v1.0 Beta highlights.
+2. Connect wallet from the Navbar.
+3. Open `/dashboard` to show Passport, XP breakdown, Quest XP, Circle data, SBT badge, and public share link.
+4. Open `/quests` to show quest progress and claimable states.
+5. Open `/integrations` or `/tools` to show Circle Wallets and Circle Contracts.
+6. Import a Circle contract only in a prepared demo database.
+7. Open `/passport/mint` to show SBT status, ownership, metadata readiness, and mint state.
+8. Open `/passport/{wallet}` to show the public builder profile.
+9. Open `/leaderboard` to show builder rankings.
+
 ## Current Features
 
 - Wallet Connect
 - Arc Passport dashboard
 - XP and reputation
 - XP breakdown
+- Arc Testnet Sync Engine
 - Daily check-in
 - Quest engine
 - Quest XP claiming
@@ -73,6 +90,8 @@ Examples:
 - `GET /api/v1/passport/{wallet}/metadata`
 - `GET /api/v1/passport/{wallet}/eligibility`
 - `GET /api/v1/passport/{wallet}/token-uri`
+- `POST /api/v1/sync/{wallet}`
+- `GET /api/v1/sync/{wallet}/status`
 - `GET /api/v1/passport-nft/status`
 - `GET /api/v1/passport-nft/contract-info`
 - `GET /api/v1/passport-nft/{wallet}/ownership`
@@ -89,6 +108,36 @@ Health endpoints:
 
 - `GET /health`
 - `GET /health/ready`
+
+## Sync Engine
+
+ArcPassport can synchronize builder activity from Arc Testnet for a wallet.
+The sync service collects latest transactions, contract calls, token transfers,
+balance data, and any discoverable contract deployments from ArcScan-compatible
+Arc Testnet APIs.
+
+Sync results update a lightweight backend cache with:
+
+- last sync timestamp
+- latest known block
+- latest wallet activity stats
+- sync status
+
+Passport XP, reputation, rank, deployment XP, achievements, and quest progress
+continue to use the existing scoring logic. If ArcScan or RPC data is
+temporarily unavailable, the app falls back to the cached sync snapshot so the
+dashboard can keep rendering.
+
+## Circle Integration Status
+
+Circle integration is enabled for safe backend-only reads and mock blueprints.
+
+- Circle API auth status is checked from the backend only.
+- Circle Wallets listing is read-only.
+- Circle Contracts listing is read-only.
+- Circle contract import stores existing contracts in ArcPassport deployment tracking.
+- Circle wallet creation, real Circle contract deployment, and Circle mutating APIs are not part of v1.0 Beta.
+- `CIRCLE_API_KEY` must stay backend-only and must never be exposed through frontend environment variables.
 
 ## Builder Passport NFT
 
@@ -114,6 +163,23 @@ Current app behavior:
 
 The mint endpoint exists, but automated smoke tests intentionally avoid calling
 it because it can submit a real Arc Testnet transaction for an eligible wallet.
+
+## Mint Modes
+
+ArcPassport v1 uses Backend/Admin Mint for ArcPassportSBT.
+
+- Current mode: Backend/Admin Mint
+- Transaction sender: deployer/admin wallet
+- NFT recipient: user wallet
+- User-paid direct mint: not available in the deployed v1 contract
+
+The SBT is still owned by the recipient user wallet after minting. The backend
+only submits the mint transaction because the deployed contract restricts
+minting to the contract owner/admin.
+
+A future v2 contract may add user-paid minting, likely through a new public
+mint function or a backend-signed eligibility flow. That would require a new
+contract version and redeployment.
 
 ## Smart Contracts
 

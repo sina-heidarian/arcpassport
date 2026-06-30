@@ -6,9 +6,9 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models import Quest, QuestCompletion
-from app.services.arcscan import build_wallet_stats
 from app.services.deployments import get_deployment_count
 from app.services.passport import get_or_create_passport
+from app.services.sync_engine import get_wallet_stats_with_cache
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +140,7 @@ def list_quests(db: Session):
 def build_wallet_quests(db: Session, wallet: str):
     wallet = wallet.lower()
     passport = get_or_create_passport(db, wallet)
-    stats = build_wallet_stats(wallet)
+    stats = get_wallet_stats_with_cache(db, wallet)
     deployment_count = get_deployment_count(db, wallet)
     quests = db.query(Quest).order_by(Quest.id.asc()).all()
     completions = get_completion_map(db, wallet)
@@ -198,7 +198,7 @@ def claim_quest(db: Session, wallet: str, quest_id: int):
         raise QuestAlreadyCompletedError("Quest already claimed")
 
     passport = get_or_create_passport(db, wallet)
-    stats = build_wallet_stats(wallet)
+    stats = get_wallet_stats_with_cache(db, wallet)
     deployment_count = get_deployment_count(db, wallet)
     progress = quest_progress(
         quest.requirement_type,

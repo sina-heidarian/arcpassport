@@ -2,6 +2,18 @@
 
 Use this checklist before continuing feature work or before a commit that changes app behavior.
 
+## Demo Order
+
+- [ ] Open `/` and show ArcPassport v1.0 Beta highlights
+- [ ] Connect wallet from the Navbar
+- [ ] Open `/dashboard` and show Passport, XP breakdown, Quest XP, Circle data, SBT badge, and public share link
+- [ ] Open `/quests` and show quest progress
+- [ ] Open `/integrations` or `/tools` and show Circle Wallets and Circle Contracts
+- [ ] Import a Circle contract only in a prepared demo database
+- [ ] Open `/passport/mint` and show SBT status, ownership, metadata readiness, and mint state
+- [ ] Open `/passport/{wallet}` and show the public Passport
+- [ ] Open `/leaderboard` and show builder rankings
+
 ## A. Landing Page
 
 - [ ] Opens `/`
@@ -65,7 +77,10 @@ Use this checklist before continuing feature work or before a commit that change
 - [ ] Contract status loads
 - [ ] Contract info loads
 - [ ] Ownership check loads
+- [ ] Mint Mode shows Backend/Admin Mint
+- [ ] User-paid mint is shown as unavailable for the deployed contract
 - [ ] Already minted wallet shows Token ID
+- [ ] SBT ownership badge shows recipient wallet
 - [ ] Full `token_uri` is hidden by default
 - [ ] Metadata toggle works if implemented
 - [ ] Mint button is disabled if already minted

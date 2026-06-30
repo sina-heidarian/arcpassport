@@ -109,6 +109,8 @@ Invoke-SmokeRequest `
     -Method "GET" `
     -Url "$BaseUrl/api/v1/passport/$SampleWallet/token-uri"
 
+# These Circle endpoints are mock blueprint checks only. They do not call
+# mutating Circle APIs, deploy real contracts, mint NFTs, or send transactions.
 Invoke-SmokeRequest `
     -Name "Mock Circle Contract Deploy" `
     -Method "POST" `

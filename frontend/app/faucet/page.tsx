@@ -2,138 +2,92 @@
 
 import { useState } from "react";
 import { useAccount } from "wagmi";
-import Navbar from "@/components/Navbar";
+import { Badge, Button, Card, PageHeader, PageShell, StatCard } from "@/components/ui";
 
 type FaucetAsset = "USDC" | "EURC" | "cirBTC";
 
+const assets: FaucetAsset[] = ["USDC", "EURC", "cirBTC"];
+
 export default function FaucetPage() {
   const { address, isConnected } = useAccount();
-
   const [asset, setAsset] = useState<FaucetAsset>("USDC");
   const walletAddress = address ?? "";
-
   const amount = asset === "cirBTC" ? "0.0001" : "20";
-
   const claimLabel =
     asset === "USDC"
       ? "Claim 20 USDC"
       : asset === "EURC"
       ? "Claim 20 EURC"
       : "Claim 0.0001 cirBTC";
-
   const shortWallet = walletAddress
     ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
     : "No wallet selected";
 
   return (
-    <main className="min-h-screen bg-black text-white p-4">
-      <div className="max-w-3xl mx-auto space-y-4">
-        <Navbar active="faucet" compact />
+    <PageShell active="faucet" width="narrow">
+      <PageHeader
+        title="Circle Faucet"
+        description="Request Arc Testnet assets from Circle."
+      />
 
-        <div className="bg-zinc-900 rounded-2xl p-4 space-y-5">
-          <div>
-            <h2 className="text-xl font-bold">Circle Faucet</h2>
-            <p className="text-sm text-gray-400 mt-1">
-              Request Arc Testnet assets from Circle.
-            </p>
-          </div>
+      <Card className="space-y-5">
+        {isConnected && walletAddress && (
+          <Card variant="muted" className="p-3">
+            <p className="text-xs text-gray-500">Connected Wallet</p>
+            <p className="font-mono mt-1 text-sm font-semibold">{shortWallet}</p>
+          </Card>
+        )}
 
-          {isConnected && walletAddress && (
-            <div className="bg-black border border-zinc-800 rounded-xl p-3">
-              <p className="text-xs text-gray-500">Connected Wallet</p>
-              <p className="text-sm font-semibold mt-1">{shortWallet}</p>
-            </div>
-          )}
-
-          <div>
-            <p className="text-sm text-gray-400 mb-3">Select Asset</p>
-
-            <div className="grid grid-cols-3 gap-3">
+        <div>
+          <p className="mb-3 text-sm text-gray-400">Select Asset</p>
+          <div className="grid grid-cols-3 gap-3">
+            {assets.map((option) => (
               <button
-                onClick={() => setAsset("USDC")}
-                className={`rounded-xl border p-4 flex flex-col items-center gap-2 ${
-                  asset === "USDC"
-                    ? "bg-white text-black border-white"
-                    : "bg-black border-zinc-700"
+                key={option}
+                onClick={() => setAsset(option)}
+                className={`flex flex-col items-center gap-2 rounded-xl border p-4 ${
+                  asset === option
+                    ? "border-white bg-white text-black"
+                    : "border-zinc-700 bg-black"
                 }`}
               >
-                <div className="text-3xl">💵</div>
-                <span className="font-bold">USDC</span>
+                <span className="font-mono text-xl font-bold">{option}</span>
               </button>
-
-              <button
-                onClick={() => setAsset("EURC")}
-                className={`rounded-xl border p-4 flex flex-col items-center gap-2 ${
-                  asset === "EURC"
-                    ? "bg-white text-black border-white"
-                    : "bg-black border-zinc-700"
-                }`}
-              >
-                <div className="text-3xl">💶</div>
-                <span className="font-bold">EURC</span>
-              </button>
-
-              <button
-                onClick={() => setAsset("cirBTC")}
-                className={`rounded-xl border p-4 flex flex-col items-center gap-2 ${
-                  asset === "cirBTC"
-                    ? "bg-white text-black border-white"
-                    : "bg-black border-zinc-700"
-                }`}
-              >
-                <div className="text-3xl">₿</div>
-                <span className="font-bold">cirBTC</span>
-              </button>
-            </div>
+            ))}
           </div>
-
-          <div>
-            <label className="text-sm text-gray-400">Wallet Address</label>
-
-            <input
-              readOnly
-              className="w-full mt-2 bg-black border border-zinc-700 rounded-xl p-3 text-gray-300"
-              placeholder="Connect wallet first"
-              value={walletAddress}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-black border border-zinc-800 rounded-xl p-4">
-              <p className="text-gray-400 text-sm">Network</p>
-              <p className="text-xl font-bold mt-1">Arc Testnet</p>
-            </div>
-
-            <div className="bg-black border border-zinc-800 rounded-xl p-4">
-              <p className="text-gray-400 text-sm">Amount</p>
-              <p className="text-xl font-bold mt-1">
-                {amount} {asset}
-              </p>
-            </div>
-          </div>
-
-          <a
-            href="https://faucet.circle.com/"
-            target="_blank"
-            rel="noreferrer"
-            className="block text-center bg-white text-black rounded-xl px-5 py-3 font-bold"
-          >
-            {claimLabel}
-          </a>
-
-          <div className="text-xs text-center text-gray-500">
-            20 USDC / 20 EURC / 0.0001 cirBTC
-            <br />
-            One request every 2 hours.
-          </div>
-
-          {isConnected && (
-            <div className="text-xs text-green-400 text-center">
-              Wallet connected ✓
-            </div>
-          )}
         </div>
-      </div>
-    </main>
+
+        <div>
+          <label className="text-sm text-gray-400">Wallet Address</label>
+          <input
+            readOnly
+            className="font-mono mt-2 w-full rounded-xl border border-zinc-700 bg-black p-3 text-gray-300"
+            placeholder="Connect wallet first"
+            value={walletAddress}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard label="Network" value="Arc Testnet" />
+          <StatCard label="Amount" value={`${amount} ${asset}`} />
+        </div>
+
+        <Button href="https://faucet.circle.com/" className="w-full">
+          {claimLabel}
+        </Button>
+
+        <div className="text-center text-xs text-gray-500">
+          20 USDC / 20 EURC / 0.0001 cirBTC
+          <br />
+          One request every 2 hours.
+        </div>
+
+        {isConnected && (
+          <div className="text-center">
+            <Badge tone="green">Wallet connected</Badge>
+          </div>
+        )}
+      </Card>
+    </PageShell>
   );
 }

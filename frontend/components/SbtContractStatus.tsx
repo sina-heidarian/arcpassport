@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button, Card } from "@/components/ui";
 import { apiGet } from "@/lib/api";
 import type {
   PassportNftContractInfo,
@@ -71,7 +72,7 @@ export default function SbtContractStatus({
   }, []);
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 space-y-4">
+    <Card className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-medium uppercase tracking-wide text-blue-300">
@@ -91,14 +92,14 @@ export default function SbtContractStatus({
         </div>
 
         {status?.explorer_url && (
-          <a
+          <Button
             href={status.explorer_url}
             target="_blank"
             rel="noreferrer"
-            className="shrink-0 rounded-xl bg-white px-4 py-2 text-sm font-medium text-black"
+            className="shrink-0"
           >
             View on ArcScan
-          </a>
+          </Button>
         )}
       </div>
 
@@ -134,15 +135,15 @@ export default function SbtContractStatus({
           />
         </div>
       )}
-    </section>
+    </Card>
   );
 }
 
 function StatusItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-black p-4">
+    <Card variant="muted">
       <p className="text-sm text-gray-500">{label}</p>
       <p className="mt-1 break-all font-semibold text-gray-100">{value}</p>
-    </div>
+    </Card>
   );
 }

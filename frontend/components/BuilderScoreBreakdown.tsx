@@ -1,3 +1,4 @@
+import { Card, StatCard } from "@/components/ui";
 import type { Passport } from "@/lib/types";
 
 type BuilderScoreBreakdownProps = {
@@ -16,7 +17,7 @@ export default function BuilderScoreBreakdown({
   breakdown,
 }: BuilderScoreBreakdownProps) {
   return (
-    <div className="bg-zinc-900 rounded-2xl p-6 space-y-4">
+    <Card className="space-y-4">
       <div>
         <h2 className="text-2xl font-bold">Builder Score Breakdown</h2>
         <p className="text-gray-400 mt-1">
@@ -25,25 +26,19 @@ export default function BuilderScoreBreakdown({
       </div>
 
       {breakdown.quest_xp > 0 && (
-        <div className="rounded-xl border border-green-800 bg-green-950/30 p-4">
+        <Card className="border-green-800 bg-green-950/30">
           <p className="text-sm font-medium text-green-300">Quest XP earned</p>
-          <p className="mt-1 text-3xl font-bold text-white">
+          <p className="font-mono mt-1 text-3xl font-bold text-white">
             {breakdown.quest_xp}
           </p>
-        </div>
+        </Card>
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {labels.map((item) => (
-          <div
-            key={item.key}
-            className="bg-black border border-zinc-800 rounded-xl p-4"
-          >
-            <p className="text-gray-500 text-sm">{item.label}</p>
-            <p className="text-2xl font-bold mt-1">{breakdown[item.key]}</p>
-          </div>
+          <StatCard key={item.key} label={item.label} value={breakdown[item.key]} />
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

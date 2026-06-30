@@ -200,3 +200,33 @@ export type PassportNftMintResponse = {
   already_minted: boolean;
   message: string;
 };
+
+export type SyncStatus = {
+  wallet: string;
+  last_sync: string | null;
+  syncing: boolean;
+  latest_block: number | null;
+  network: string;
+};
+
+export type SyncResponse = {
+  wallet: string;
+  synced: boolean;
+  cached: boolean;
+  transactions: number;
+  latest_transactions: Transaction[];
+  contract_calls: number;
+  token_transfers: number;
+  balance: number;
+  deployments: number;
+  imported_deployments: number;
+  xp: number;
+  reputation: number;
+  rank: number;
+  deployment_xp: number;
+  achievements: Achievement[];
+  latest_block: number | null;
+  network: string;
+  timestamp: string | null;
+  message?: string | null;
+};

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Button, Card } from "@/components/ui";
 import { apiGet } from "@/lib/api";
 import type { PassportNftOwnership as PassportNftOwnershipType } from "@/lib/types";
 
@@ -70,7 +71,7 @@ export function PassportNftOwnershipView({
 
   if (compact) {
     return (
-      <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+      <Card>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium uppercase tracking-wide text-blue-300">
@@ -86,17 +87,23 @@ export function PassportNftOwnershipView({
                 ? `Token ID: ${ownership.token_id ?? "Unknown"}`
                 : "No Builder Passport minted yet."}
             </p>
+            {ownership?.owns_passport && (
+              <div className="mt-2 space-y-1 text-sm text-gray-400">
+                <p>Minted via ArcPassport Admin</p>
+                <p className="break-all">Recipient wallet: {ownership.wallet}</p>
+              </div>
+            )}
           </div>
 
           {ownership?.owns_passport && ownership.explorer_url && (
-            <a
+            <Button
               href={ownership.explorer_url}
               target="_blank"
               rel="noreferrer"
               className="shrink-0 rounded-xl bg-white px-4 py-2 text-sm font-medium text-black"
             >
               View Contract
-            </a>
+            </Button>
           )}
         </div>
 
@@ -104,12 +111,12 @@ export function PassportNftOwnershipView({
           <p className="mt-3 text-sm text-gray-500">Checking ownership...</p>
         )}
         {error && <p className="mt-3 text-sm text-red-300">{error}</p>}
-      </section>
+      </Card>
     );
   }
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 space-y-4">
+    <Card className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-medium uppercase tracking-wide text-blue-300">
@@ -121,17 +128,23 @@ export function PassportNftOwnershipView({
               ? "Builder Passport minted"
               : "No Builder Passport minted yet."}
           </p>
+          {ownership?.owns_passport && (
+            <div className="mt-2 space-y-1 text-sm text-gray-400">
+              <p>Minted via ArcPassport Admin</p>
+              <p className="break-all">Recipient wallet: {ownership.wallet}</p>
+            </div>
+          )}
         </div>
 
         {ownership?.explorer_url && (
-          <a
+          <Button
             href={ownership.explorer_url}
             target="_blank"
             rel="noreferrer"
             className="shrink-0 rounded-xl bg-white px-4 py-2 text-sm font-medium text-black"
           >
             View Contract
-          </a>
+          </Button>
         )}
       </div>
 
@@ -158,13 +171,13 @@ export function PassportNftOwnershipView({
 
       {ownership?.token_uri && (
         <div>
-          <button
+          <Button
             type="button"
             onClick={() => setShowMetadata((current) => !current)}
-            className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-medium text-gray-200 hover:border-zinc-500"
+            variant="secondary"
           >
             {showMetadata ? "Hide Metadata" : "Show Metadata"}
-          </button>
+          </Button>
           {showMetadata && (
             <p className="mt-3 max-h-32 overflow-auto break-all rounded-xl border border-zinc-800 bg-black p-4 text-xs text-gray-500">
               {ownership.token_uri}
@@ -172,15 +185,15 @@ export function PassportNftOwnershipView({
           )}
         </div>
       )}
-    </section>
+    </Card>
   );
 }
 
 function OwnershipItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-black p-4">
+    <Card variant="muted">
       <p className="text-sm text-gray-500">{label}</p>
       <p className="mt-1 break-all font-semibold text-gray-100">{value}</p>
-    </div>
+    </Card>
   );
 }

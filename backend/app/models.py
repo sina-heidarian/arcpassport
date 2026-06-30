@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from sqlalchemy import Boolean, Column, String, Integer, Date, DateTime, UniqueConstraint
+from sqlalchemy import Boolean, Column, String, Integer, Date, DateTime, JSON, UniqueConstraint
 from app.database import Base
 
 class Passport(Base):
@@ -54,3 +54,16 @@ class QuestCompletion(Base):
     quest_id = Column(Integer, index=True, nullable=False)
     xp_reward = Column(Integer, nullable=False)
     completed_at = Column(DateTime, default=datetime.utcnow)
+
+
+class SyncStatus(Base):
+    __tablename__ = "sync_statuses"
+
+    wallet = Column(String, primary_key=True, index=True)
+    last_sync_at = Column(DateTime, nullable=True)
+    syncing = Column(Boolean, default=False)
+    latest_block = Column(Integer, nullable=True)
+    network = Column(String, default="Arc Testnet")
+    latest_stats = Column(JSON, nullable=True)
+    last_error = Column(String(240), nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow)

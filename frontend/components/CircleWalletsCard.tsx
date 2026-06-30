@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Button, Card } from "@/components/ui";
 import { apiGet } from "@/lib/api";
 
 type CircleWallet = {
@@ -81,7 +82,7 @@ export default function CircleWalletsCard({
   const visibleWallets = compact ? wallets.slice(0, 1) : wallets;
 
   return (
-    <section className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+    <Card className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-2xl font-bold">Circle Wallets</h3>
@@ -89,14 +90,13 @@ export default function CircleWalletsCard({
             Developer-controlled wallets returned by Circle.
           </p>
         </div>
-        <button
+        <Button
           type="button"
           onClick={() => loadWallets()}
           disabled={loading}
-          className="bg-white text-black rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {loading ? "Refreshing..." : "Refresh Wallets"}
-        </button>
+        </Button>
       </div>
 
       {error && (
@@ -135,13 +135,13 @@ export default function CircleWalletsCard({
           {wallets.length - 1 === 1 ? "" : "s"} available.
         </p>
       )}
-    </section>
+    </Card>
   );
 }
 
 function CircleWalletItem({ wallet }: { wallet: CircleWallet }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-black p-4 space-y-4">
+    <Card className="space-y-4" variant="muted">
       <div>
         <h4 className="text-base font-bold break-all">
           {wallet.address ?? "Unknown address"}
@@ -159,7 +159,7 @@ function CircleWalletItem({ wallet }: { wallet: CircleWallet }) {
         <WalletField label="Created Date" value={wallet.createDate} />
         <WalletField label="Updated Date" value={wallet.updateDate} />
       </div>
-    </div>
+    </Card>
   );
 }
 

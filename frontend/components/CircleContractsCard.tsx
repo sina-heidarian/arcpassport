@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePassportContext } from "@/components/PassportProvider";
+import { Button, Card } from "@/components/ui";
 import { apiGet, apiPost } from "@/lib/api";
 
 type CircleContract = {
@@ -119,7 +120,7 @@ export default function CircleContractsCard({
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+    <Card className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-2xl font-bold">Circle Contracts</h3>
@@ -127,14 +128,13 @@ export default function CircleContractsCard({
             Existing contracts returned by Circle.
           </p>
         </div>
-        <button
+        <Button
           type="button"
           onClick={() => loadContracts()}
           disabled={loading}
-          className="bg-white text-black rounded-xl px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {loading ? "Refreshing..." : "Refresh Contracts"}
-        </button>
+        </Button>
       </div>
 
       {error && (
@@ -180,7 +180,7 @@ export default function CircleContractsCard({
           {contracts.length - 1 === 1 ? "" : "s"} available.
         </p>
       )}
-    </section>
+    </Card>
   );
 }
 
@@ -218,7 +218,7 @@ function CircleContractItem({
   onImport: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-black p-4 space-y-4">
+    <Card className="space-y-4" variant="muted">
       <div>
         <h4 className="text-base font-bold break-all">
           {contract.name ?? "Unnamed contract"}
@@ -235,22 +235,21 @@ function CircleContractItem({
         <ContractField label="Updated Date" value={contract.updateDate} />
       </div>
 
-      <button
+      <Button
         type="button"
         onClick={onImport}
         disabled={!canImport || importing || imported || !contract.id}
-        className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black disabled:opacity-50"
       >
         {imported
           ? "Imported"
           : importing
             ? "Importing..."
             : "Import to ArcPassport"}
-      </button>
+      </Button>
       {imported && (
         <p className="text-xs text-green-300">Imported to ArcPassport</p>
       )}
-    </div>
+    </Card>
   );
 }
 

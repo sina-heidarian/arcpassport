@@ -2,10 +2,10 @@ from sqlalchemy.orm import Session
 
 from app.models import Passport
 from app.services.achievements import build_achievements
-from app.services.arcscan import build_wallet_stats
 from app.services.deployments import get_deployment_count
 from app.services.passport import calculate_scores, get_builder_rank
 from app.services.quests import get_quest_xp
+from app.services.sync_engine import get_wallet_stats_with_cache
 
 
 def build_leaderboard_entries(db: Session):
@@ -13,7 +13,7 @@ def build_leaderboard_entries(db: Session):
     leaderboard = []
 
     for passport in passports:
-        stats = build_wallet_stats(passport.wallet)
+        stats = get_wallet_stats_with_cache(db, passport.wallet)
         deployment_count = get_deployment_count(db, passport.wallet)
         quest_xp = get_quest_xp(db, passport.wallet)
         scores = calculate_scores(stats, passport, deployment_count, quest_xp)

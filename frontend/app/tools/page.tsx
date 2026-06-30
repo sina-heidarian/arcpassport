@@ -1,125 +1,33 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useDeployContract, useWaitForTransactionReceipt } from "wagmi";
+import ActivityTimeline from "@/components/ActivityTimeline";
+import BuilderContracts from "@/components/BuilderContracts";
 import CircleContractsCard from "@/components/CircleContractsCard";
 import CircleWalletsCard from "@/components/CircleWalletsCard";
 import DailyCheckin from "@/components/DailyCheckin";
 import DeployCard from "@/components/DeployCard";
 import MintPassport from "@/components/MintPassport";
-import Navbar from "@/components/Navbar";
 import { usePassportContext } from "@/components/PassportProvider";
 import PassportReadinessCard from "@/components/PassportReadinessCard";
 import SbtContractStatus from "@/components/SbtContractStatus";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  PageHeader,
+  PageShell,
+  StatCard,
+} from "@/components/ui";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { apiPost } from "@/lib/api";
 import { counterAbi, counterBytecode } from "@/lib/counterContract";
 
-type Tool = {
-  title: string;
-  description: string;
-  href?: string;
-  cta?: string;
-  disabled?: boolean;
-};
-
-type ToolSection = {
-  title: string;
-  description: string;
-  tools: Tool[];
-};
-
-const toolSections: ToolSection[] = [
-  {
-    title: "Build",
-    description: "Prepare contract deployment flows.",
-    tools: [
-      {
-        title: "Circle Contract Deploy",
-        description: "Prepare future Circle-powered contract deployment.",
-        cta: "Prepare Deploy",
-        disabled: true,
-      },
-    ],
-  },
-  {
-    title: "Fund",
-    description: "Get assets and prepare your wallet.",
-    tools: [
-      {
-        title: "Builder Wallet",
-        description:
-          "Prepare a Circle-powered Arc builder wallet for future deployments and rewards.",
-        cta: "Coming Soon",
-        disabled: true,
-      },
-      {
-        title: "Gas Sponsorship",
-        description:
-          "Prepare future gasless or sponsored builder actions on Arc.",
-        cta: "Coming Soon",
-        disabled: true,
-      },
-      {
-        title: "Circle Faucet",
-        description: "Claim Arc testnet USDC, EURC, and cirBTC.",
-        href: "/faucet",
-        cta: "Open Faucet",
-      },
-      {
-        title: "Gateway / Unified Balance",
-        description: "View and use unified USDC balances across supported chains.",
-        cta: "Coming Soon",
-        disabled: true,
-      },
-      {
-        title: "CCTP Bridge",
-        description: "Move native USDC across chains using Circle CCTP.",
-        cta: "Coming Soon",
-        disabled: true,
-      },
-    ],
-  },
-  {
-    title: "Explore",
-    description: "Inspect activity and learn from official resources.",
-    tools: [
-      {
-        title: "ArcScan",
-        description: "Explore Arc Testnet transactions, contracts, and wallets.",
-        href: "https://testnet.arcscan.app",
-        cta: "Open ArcScan",
-      },
-      {
-        title: "Infinity Name",
-        description: "Register or manage your Arc identity.",
-        href: "https://app.infinityname.com",
-        cta: "Open Infinity Name",
-      },
-      {
-        title: "Arc Docs",
-        description: "Read official Arc documentation and builder guides.",
-        href: "https://docs.arc.io",
-        cta: "Open Docs",
-      },
-      {
-        title: "Circle Docs",
-        description: "Explore Circle Wallets, Contracts, Gateway, CCTP, and App Kit.",
-        href: "https://developers.circle.com",
-        cta: "Open Circle Docs",
-      },
-      {
-        title: "AI Builder",
-        description: "Generate, understand, and deploy smart contracts with AI.",
-        cta: "Coming Soon",
-        disabled: true,
-      },
-    ],
-  },
-];
-
 export default function ToolsPage() {
-  const { wallet, isConnected, passport, refreshing, refreshPassport } =
+  const { wallet, isConnected, passport, deployments, refreshing, refreshPassport } =
     usePassportContext();
   const {
     deployContract,
@@ -194,46 +102,86 @@ export default function ToolsPage() {
   }, [receipt, deployHash, wallet, refreshPassport, loadLeaderboard]);
 
   return (
-    <main className="min-h-screen bg-black text-white p-4 sm:p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <Navbar active="workspace" />
+    <PageShell active="workspace" width="wide">
+      <section className="relative overflow-hidden rounded-[32px] border border-zinc-800 bg-zinc-950 p-6 shadow-[0_24px_100px_rgba(0,0,0,0.28)] sm:p-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_12%,rgba(59,130,246,0.22),transparent_34%)]" />
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <PageHeader
+            eyebrow="Builder Console"
+            title="Builder Console"
+            description="A focused operating system for Arc builders: infrastructure, deployments, status, activity, and developer actions."
+          />
+          <div className="flex flex-wrap gap-2">
+            <Badge tone={isConnected ? "green" : "yellow"}>
+              {isConnected ? "Wallet connected" : "Wallet required"}
+            </Badge>
+            {passport && refreshing && <Badge tone="blue">Refreshing</Badge>}
+          </div>
+        </div>
+      </section>
 
-        <section className="space-y-3">
-          <h2 className="text-3xl font-bold">Builder Workspace</h2>
-          <p className="max-w-2xl text-gray-400">
-            A focused launchpad for Arc builders: build, fund, explore, and
-            prepare your persistent builder identity.
-          </p>
-        </section>
-
-        <ActionLinkCard
-          title="Quest Progress"
-          description="Track builder goals and XP rewards from one focused page."
-          href="/quests"
-          cta="Open Quests"
+      {!isConnected && (
+        <EmptyState
+          title="Connect your wallet"
+          description="Connect your wallet to activate deploy, check-in, mint, profile, and passport actions."
         />
+      )}
 
-        <PassportReadinessCard wallet={passport?.wallet ?? wallet} />
-        <SbtContractStatus compact />
+      <ConsoleSection
+        title="Circle Wallet"
+        description="Developer-controlled Circle wallet infrastructure presented as builder-ready resources."
+      >
+        <CircleWalletsCard />
+      </ConsoleSection>
 
-        {!isConnected && (
-          <div className="bg-zinc-900 rounded-2xl p-6">
-            <h2 className="text-2xl font-bold">Connect your wallet</h2>
-            <p className="text-gray-400 mt-2">
-              Connect your wallet to deploy, check in, and prepare your Builder
-              Passport.
-            </p>
+      <ConsoleSection
+        title="Circle Contracts"
+        description="Read-only Circle contracts that can be imported into ArcPassport deployment tracking."
+      >
+        <CircleContractsCard />
+      </ConsoleSection>
+
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+        <ConsoleSection
+          title="Builder Status"
+          description="Passport readiness, SBT status, and core builder signals."
+        >
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <StatCard label="XP" value={passport?.xp ?? 0} highlight={Boolean(passport?.xp)} />
+            <StatCard label="Reputation" value={passport?.reputation ?? 0} />
+            <StatCard label="Deployments" value={passport?.deployment_count ?? 0} />
+            <StatCard label="Streak" value={passport ? `${passport.streak} day` : "-"} />
           </div>
-        )}
-
-        <section className="space-y-4">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-            <h3 className="text-2xl font-bold">Actions</h3>
-            {passport && refreshing && (
-              <p className="text-sm text-gray-500">Refreshing workspace...</p>
-            )}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <PassportReadinessCard wallet={passport?.wallet ?? wallet} />
+            <SbtContractStatus compact />
           </div>
+        </ConsoleSection>
 
+        <ConsoleSection
+          title="Recent Activity"
+          description="Latest deployments, transactions, and unlocked builder milestones."
+        >
+          {passport ? (
+            <ActivityTimeline
+              recentTransactions={passport.recent_transactions.slice(0, 4)}
+              deployments={deployments.slice(0, 3)}
+              achievements={passport.achievements ?? []}
+            />
+          ) : (
+            <LockedActionCard
+              title="Activity unavailable"
+              description="Connect wallet to load recent builder activity."
+            />
+          )}
+        </ConsoleSection>
+      </section>
+
+      <ConsoleSection
+        title="Deployments"
+        description="Deploy contracts and review your latest tracked builder contracts."
+      >
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[0.9fr_1.1fr]">
           <DeployCard
             isConnected={isConnected}
             deployPending={deployPending}
@@ -242,94 +190,96 @@ export default function ToolsPage() {
             deployError={deployError}
             onDeploy={deployCounterContract}
           />
-
-          {passport ? (
-            <DailyCheckin
-              passport={passport}
-              checkinLoading={checkinLoading}
-              onCheckin={dailyCheckin}
-            />
-          ) : (
-            <LockedActionCard
-              title="Daily Check-in"
-              description="Claim daily XP and build your streak."
-            />
-          )}
-
-          {passport ? (
-            <MintPassport wallet={passport.wallet} />
-          ) : (
-            <LockedActionCard
-              title="Builder Passport NFT"
-              description="Mint your onchain builder identity for Arc."
-            />
-          )}
-
-          {passport ? (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <ActionLinkCard
-                title="Public Passport"
-                description="Open your shareable Arc builder profile."
-                href={`/passport/${passport.wallet}`}
-                cta="View Passport"
-              />
-              <ActionLinkCard
-                title="Profile Settings"
-                description="Update your public builder profile details."
-                href="/profile"
-                cta="Edit Profile"
-              />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <LockedActionCard
-                title="Public Passport"
-                description="Connect wallet to use this tool."
-              />
-              <LockedActionCard
-                title="Profile Settings"
-                description="Connect wallet to use this tool."
-              />
-            </div>
-          )}
-        </section>
-
-        <div className="space-y-8">
-          <section className="space-y-4">
-            <div>
-              <h3 className="text-2xl font-bold">
-                Circle Builder Infrastructure
-              </h3>
-              <p className="text-sm text-gray-400 mt-1">
-                Real read-only Circle wallets and contracts connected to your
-                ArcPassport builder progress.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-              <CircleContractsCard />
-              <CircleWalletsCard />
-            </div>
-          </section>
-
-          {toolSections.map((section) => (
-            <section key={section.title} className="space-y-4">
-              <div>
-                <h3 className="text-2xl font-bold">{section.title}</h3>
-                <p className="text-sm text-gray-400 mt-1">
-                  {section.description}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {section.tools.map((tool) => (
-                  <ToolCard key={tool.title} tool={tool} />
-                ))}
-              </div>
-            </section>
-          ))}
+          <BuilderContracts deployments={deployments.slice(0, 4)} />
         </div>
-      </div>
-    </main>
+      </ConsoleSection>
+
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <ConsoleSection
+          title="Developer Tools"
+          description="External developer resources and future ArcPassport infrastructure modules."
+        >
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <DeveloperToolCard
+              title="ArcScan"
+              description="Inspect Arc Testnet wallets, contracts, and transactions."
+              href="https://testnet.arcscan.app"
+              cta="Open"
+            />
+            <DeveloperToolCard
+              title="Arc Docs"
+              description="Read official Arc documentation and builder guides."
+              href="https://docs.arc.io"
+              cta="Docs"
+            />
+            <DeveloperToolCard
+              title="Circle Docs"
+              description="Explore Circle Wallets, Contracts, Gateway, CCTP, and App Kit."
+              href="https://developers.circle.com"
+              cta="Docs"
+            />
+            <DeveloperToolCard
+              title="Infinity Name"
+              description="Register or manage your Arc identity."
+              href="https://app.infinityname.com"
+              cta="Open"
+            />
+            <DeveloperToolCard
+              title="AI Builder"
+              description="Generate and understand smart contracts with AI."
+              cta="Coming Soon"
+              disabled
+            />
+            <DeveloperToolCard
+              title="Gateway / CCTP"
+              description="Future unified balance and USDC bridge tooling."
+              cta="Coming Soon"
+              disabled
+            />
+          </div>
+        </ConsoleSection>
+
+        <ConsoleSection
+          title="Quick Actions"
+          description="Frequent builder actions without leaving the console."
+        >
+          <div className="grid gap-4">
+            {passport ? (
+              <DailyCheckin
+                passport={passport}
+                checkinLoading={checkinLoading}
+                onCheckin={dailyCheckin}
+              />
+            ) : (
+              <LockedActionCard
+                title="Daily Check-in"
+                description="Connect wallet to claim daily XP and build your streak."
+              />
+            )}
+
+            {passport ? (
+              <MintPassport wallet={passport.wallet} />
+            ) : (
+              <LockedActionCard
+                title="Builder Passport NFT"
+                description="Connect wallet to prepare your onchain builder identity."
+              />
+            )}
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <ActionButton href="/faucet" label="Open Faucet" />
+              <ActionButton href="/quests" label="Quest Progress" />
+              <ActionButton
+                href={passport ? `/passport/${passport.wallet}` : "/dashboard"}
+                label="Public Passport"
+                disabled={!passport}
+              />
+              <ActionButton href="/profile" label="Profile Settings" disabled={!passport} />
+            </div>
+          </div>
+        </ConsoleSection>
+      </section>
+    </PageShell>
   );
 }
 
@@ -341,85 +291,111 @@ function LockedActionCard({
   description: string;
 }) {
   return (
-    <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 space-y-4 opacity-60">
+    <Card className="space-y-4 opacity-60" variant="muted">
       <div>
         <h2 className="text-2xl font-bold">{title}</h2>
         <p className="text-gray-400 mt-1">{description}</p>
       </div>
 
-      <button
-        type="button"
-        disabled
-        className="bg-white text-black rounded-xl px-5 py-3 font-medium opacity-50"
-      >
+      <Button disabled>
         Connect Wallet
-      </button>
+      </Button>
 
       <p className="text-sm text-gray-500">Connect wallet to use this tool.</p>
-    </div>
+    </Card>
   );
 }
 
-function ActionLinkCard({
+function ConsoleSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-4">
+      <div>
+        <p className="text-label text-blue-300">Console Section</p>
+        <h2 className="text-heading mt-1 text-2xl font-bold">{title}</h2>
+        <p className="mt-1 max-w-3xl text-sm text-gray-400">{description}</p>
+      </div>
+      <div className="[&>div]:min-w-0 [&>section]:min-w-0">{children}</div>
+    </section>
+  );
+}
+
+function DeveloperToolCard({
   title,
   description,
   href,
   cta,
+  disabled = false,
 }: {
   title: string;
   description: string;
-  href: string;
+  href?: string;
   cta: string;
+  disabled?: boolean;
 }) {
-  return (
-    <a
-      href={href}
-      className="block rounded-2xl border border-zinc-800 bg-zinc-900 p-6 transition hover:border-zinc-600"
+  const card = (
+    <Card
+      className={`h-full transition ${
+        disabled ? "opacity-50" : "hover:-translate-y-0.5 hover:border-blue-300/30"
+      }`}
+      variant={disabled ? "muted" : "default"}
     >
-      <h2 className="text-2xl font-bold">{title}</h2>
-      <p className="text-gray-400 mt-1">{description}</p>
-      <span className="mt-4 inline-flex rounded-xl bg-white px-5 py-3 font-medium text-black">
-        {cta}
-      </span>
-    </a>
-  );
-}
-
-function ToolCard({ tool }: { tool: Tool }) {
-  const className = `rounded-2xl border p-5 transition ${
-    tool.disabled
-      ? "pointer-events-none border-zinc-900 bg-zinc-950 opacity-50"
-      : "border-zinc-800 bg-zinc-900 hover:border-zinc-600"
-  }`;
-
-  const content = (
-    <div className="flex items-start justify-between gap-4">
-      <div>
-        <h4 className="text-xl font-bold">{tool.title}</h4>
-        <p className="text-sm text-gray-400 mt-2">{tool.description}</p>
+      <div className="flex h-full flex-col justify-between gap-5">
+        <div>
+          <div className="mb-4 h-8 w-8 rounded-xl border border-blue-400/20 bg-blue-400/10" />
+          <h3 className="text-heading text-lg font-bold">{title}</h3>
+          <p className="mt-2 text-sm leading-6 text-gray-400">{description}</p>
+        </div>
+        <span className="inline-flex w-fit rounded-full border border-zinc-700 px-3 py-1 text-xs font-semibold text-gray-300">
+          {cta}
+        </span>
       </div>
-      <span className="shrink-0 rounded-full border border-zinc-700 px-3 py-1 text-xs text-gray-300">
-        {tool.cta ?? (tool.disabled ? "Coming Soon" : "Open")}
-      </span>
-    </div>
+    </Card>
   );
 
-  if (tool.disabled || !tool.href) {
-    return (
-      <div aria-disabled="true" className={className}>
-        {content}
-      </div>
-    );
+  if (disabled || !href) {
+    return card;
   }
 
   return (
     <a
-      href={tool.href}
-      target={tool.href.startsWith("http") ? "_blank" : undefined}
-      rel={tool.href.startsWith("http") ? "noreferrer" : undefined}
-      className={className}
+      href={href}
+      target={href.startsWith("http") ? "_blank" : undefined}
+      rel={href.startsWith("http") ? "noreferrer" : undefined}
+      className="block"
     >
-      {content}
+      {card}
     </a>
+  );
+}
+
+function ActionButton({
+  href,
+  label,
+  disabled = false,
+}: {
+  href: string;
+  label: string;
+  disabled?: boolean;
+}) {
+  if (disabled) {
+    return (
+      <Button disabled variant="secondary" className="w-full">
+        {label}
+      </Button>
+    );
+  }
+
+  return (
+    <Button href={href} variant="secondary" className="w-full">
+      {label}
+    </Button>
   );
 }

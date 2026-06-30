@@ -14,6 +14,7 @@ from app.routers import (
     passport,
     quests,
     stats,
+    sync,
 )
 from app.startup import initialize_backend
 
@@ -53,6 +54,7 @@ include_api_router(stats.router)
 include_api_router(deployments.router)
 include_api_router(circle.router)
 include_api_router(quests.router)
+include_api_router(sync.router)
 app.include_router(health.router)
 
 logger.info("ArcPassport API startup complete")

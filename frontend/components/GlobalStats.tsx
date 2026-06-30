@@ -1,3 +1,4 @@
+import { Card, StatCard } from "@/components/ui";
 import { shortWallet } from "@/lib/builder";
 import type { PlatformStats } from "@/lib/types";
 
@@ -7,7 +8,7 @@ type GlobalStatsProps = {
 
 export default function GlobalStats({ stats }: GlobalStatsProps) {
   return (
-    <div className="bg-zinc-900 rounded-2xl p-6 space-y-4">
+    <Card className="space-y-4">
       <div>
         <h2 className="text-2xl font-bold">Platform Overview</h2>
         <p className="text-gray-400 mt-1">
@@ -28,21 +29,6 @@ export default function GlobalStats({ stats }: GlobalStatsProps) {
           }
         />
       </div>
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) {
-  return (
-    <div className="bg-black border border-zinc-800 rounded-xl p-4">
-      <p className="text-gray-500 text-sm">{label}</p>
-      <p className="text-2xl font-bold mt-1 break-all">{value}</p>
-    </div>
+    </Card>
   );
 }

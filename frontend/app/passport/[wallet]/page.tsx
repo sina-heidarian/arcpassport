@@ -1,14 +1,5 @@
-import Achievements from "@/components/Achievements";
-import ActivityTimeline from "@/components/ActivityTimeline";
-import BuilderContracts from "@/components/BuilderContracts";
-import BuilderProfile from "@/components/BuilderProfile";
-import BuilderScoreBreakdown from "@/components/BuilderScoreBreakdown";
-import Navbar from "@/components/Navbar";
-import PassportCard from "@/components/PassportCard";
-import PassportNftOwnership from "@/components/PassportNftOwnership";
-import PassportNftPreview from "@/components/PassportNftPreview";
-import PublicPassportHero from "@/components/PublicPassportHero";
-import RecentTransactions from "@/components/RecentTransactions";
+import PublicPassportExperience from "@/components/PublicPassportExperience";
+import { Card, PageShell } from "@/components/ui";
 import { serverApiUrl } from "@/lib/api";
 import type {
   Deployment,
@@ -112,18 +103,14 @@ export default async function PublicPassportPage({
 
   if (!publicPassport) {
     return (
-      <main className="min-h-screen bg-black text-white p-4 sm:p-8">
-        <div className="max-w-5xl mx-auto space-y-8">
-          <Navbar active="home" />
-
-          <div className="bg-zinc-900 rounded-2xl p-6 space-y-3">
+      <PageShell active="home" width="wide">
+          <Card className="space-y-3">
             <h2 className="text-2xl font-bold">Passport unavailable</h2>
             <p className="text-gray-400 break-all">
               Could not load a public passport for {wallet}.
             </p>
-          </div>
-        </div>
-      </main>
+          </Card>
+      </PageShell>
     );
   }
 
@@ -134,81 +121,17 @@ export default async function PublicPassportPage({
   ).length;
 
   return (
-    <main className="min-h-screen bg-black text-white p-4 sm:p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <Navbar active="home" />
-
-        <PublicPassportHero passport={passport} />
-
-        <section className="space-y-4">
-          <h3 className="text-2xl font-bold">Future Builder Passport</h3>
-          <PassportNftPreview
-            metadata={metadata}
-            eligibility={eligibility}
-            compact
-          />
-          {tokenUri && (
-            <div className="rounded-2xl border border-green-900 bg-green-950/20 p-5">
-              <p className="text-sm font-medium text-green-300">
-                Metadata Ready
-              </p>
-              <p className="mt-2 break-all text-xs text-gray-400">
-                Token URI prepared for future minting.
-              </p>
-            </div>
-          )}
-          <PassportNftOwnership
-            wallet={passport.wallet}
-            initialOwnership={ownership}
-            compact
-          />
-        </section>
-
-        <PassportCard
+    <PageShell active="home" width="wide">
+        <PublicPassportExperience
           passport={passport}
+          deployments={deployments}
+          metadata={metadata}
+          tokenUri={tokenUri}
+          eligibility={eligibility}
+          ownership={ownership}
           unlockedAchievements={unlockedAchievements}
           totalAchievements={achievements.length}
         />
-
-        <section className="space-y-4">
-          <h3 className="text-2xl font-bold">Builder Profile</h3>
-          <BuilderProfile
-            passport={passport}
-            contractCount={passport.deployment_count}
-            unlockedAchievements={unlockedAchievements}
-            totalAchievements={achievements.length}
-          />
-        </section>
-
-        <section className="space-y-4">
-          <h3 className="text-2xl font-bold">Score Breakdown</h3>
-          <BuilderScoreBreakdown breakdown={passport.xp_breakdown} />
-        </section>
-
-        <section className="space-y-4">
-          <h3 className="text-2xl font-bold">Achievements</h3>
-          <Achievements achievements={achievements} />
-        </section>
-
-        <section className="space-y-4">
-          <h3 className="text-2xl font-bold">Activity Timeline</h3>
-          <ActivityTimeline
-            recentTransactions={passport.recent_transactions}
-            deployments={deployments}
-            achievements={achievements}
-          />
-        </section>
-
-        <section className="space-y-4">
-          <h3 className="text-2xl font-bold">Builder Contracts</h3>
-          <BuilderContracts deployments={deployments} />
-        </section>
-
-        <section className="space-y-4">
-          <h3 className="text-2xl font-bold">Recent Transactions</h3>
-          <RecentTransactions transactions={passport.recent_transactions} />
-        </section>
-      </div>
-    </main>
+    </PageShell>
   );
 }

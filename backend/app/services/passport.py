@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.models import Passport
 from app.services.achievements import build_achievements
-from app.services.arcscan import build_wallet_stats
 from app.services.deployments import get_deployment_count
+from app.services.sync_engine import get_wallet_stats_with_cache
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +98,7 @@ def build_passport_response(db: Session, wallet: str):
     from app.services.leaderboard import calculate_user_rank
 
     passport = get_or_create_passport(db, wallet)
-    stats = build_wallet_stats(wallet)
+    stats = get_wallet_stats_with_cache(db, wallet)
     deployment_count = get_deployment_count(db, wallet)
     from app.services.quests import get_quest_xp
 
@@ -178,7 +178,7 @@ def prepare_passport_mint(db: Session, wallet: str):
     from app.services.leaderboard import calculate_user_rank
 
     passport = get_or_create_passport(db, wallet)
-    stats = build_wallet_stats(wallet)
+    stats = get_wallet_stats_with_cache(db, wallet)
     deployment_count = get_deployment_count(db, wallet)
     from app.services.quests import get_quest_xp
 
